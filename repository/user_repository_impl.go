@@ -7,12 +7,13 @@ import (
 
 	"github.com/raafly/inventory-management/entity"
 	"github.com/raafly/inventory-management/helper"
+	"github.com/raafly/inventory-management/repository/port"
 )
 
 type UserRepositoryImpl struct{
 }
 
-func NewUserRepository() *UserRepositoryImpl {
+func NewUserRepository() port.UserRepository {
 	return &UserRepositoryImpl{}
 }
 

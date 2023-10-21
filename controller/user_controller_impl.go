@@ -6,14 +6,14 @@ import (
 	"github.com/julienschmidt/httprouter"
 	"github.com/raafly/inventory-management/helper"
 	"github.com/raafly/inventory-management/model"
-	"github.com/raafly/inventory-management/service"
+	portService "github.com/raafly/inventory-management/service/port"
 )
 
 type UserControllerImpl struct{
-	UserService 	service.UserServiceImpl
+	UserService 	portService.UserService
 }
 
-func NewUserController(userService service.UserServiceImpl) *UserControllerImpl {
+func NewUserController(userService portService.UserService) *UserControllerImpl {
 	return &UserControllerImpl{
 		UserService: userService,
 	}
@@ -29,7 +29,6 @@ func (c *UserControllerImpl) SignIn(w http.ResponseWriter, r *http.Request, para
 		Status: "SUCCESS",
 		Data: user,
 	}
-
 
 	http.SetCookie(w, &http.Cookie{
 		Name: "token",

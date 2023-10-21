@@ -11,17 +11,18 @@ import (
 	"github.com/raafly/inventory-management/entity"
 	"github.com/raafly/inventory-management/helper"
 	"github.com/raafly/inventory-management/model"
-	"github.com/raafly/inventory-management/repository"
+	portRepository "github.com/raafly/inventory-management/repository/port"
+	portService "github.com/raafly/inventory-management/service/port"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type UserServiceImpl struct {
-	UserRepository 	repository.UserRepositoryImpl
+	UserRepository 	portRepository.UserRepository
 	DB 				*sql.DB
 	Validate 		*validator.Validate
 }
 
-func NewUserService(userRepository repository.UserRepositoryImpl, DB *sql.DB, validate *validator.Validate) *UserServiceImpl {
+func NewUserService(userRepository 	portRepository.UserRepository, DB *sql.DB, validate *validator.Validate) portService.UserService {
 	return &UserServiceImpl{
 		UserRepository: userRepository,
 		DB: DB,
@@ -35,9 +36,6 @@ func (s *UserServiceImpl) SignUp(ctx context.Context, request model.UserSignUp) 
 
 	tx, err := s.DB.Begin()
 	defer helper.CommitOrRollback(tx)
-	helper.PanicIfError(err)
-
-	_, err = s.UserRepository.FindById(ctx, tx, request.Id)
 	helper.PanicIfError(err)
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(request.Password), bcrypt.DefaultCost)
@@ -134,4 +132,3 @@ func (s *UserServiceImpl) FindAll(ctx context.Context) []model.UserResponse {
 	users := s.UserRepository.FindAll(ctx, tx)
 	return helper.ToUserResponses(users)
 }
-

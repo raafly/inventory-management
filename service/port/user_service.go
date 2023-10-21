@@ -6,7 +6,7 @@ import (
 	"github.com/raafly/inventory-management/model"
 )
 
-type UserPort interface{
+type UserService interface{
 	SignUp(ctx context.Context, request model.UserSignUp) model.UserResponse
 	SignIn(ctx context.Context, request model.UserSignIn) (model.UserResponse, string)
 	Update(ctx context.Context, request model.UserUpdate)

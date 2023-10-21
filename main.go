@@ -16,12 +16,12 @@ func main() {
 	Validate := validator.New()
 
 	userRepository := repository.NewUserRepository()
-	userService := service.NewUserService(*userRepository, DB, Validate)
-	userController := controller.NewUserController(*userService)
+	userService := service.NewUserService(userRepository, DB, Validate)
+	userController := controller.NewUserController(userService)
 
 	itemRepository := repository.NewItemRepository()
-	itemService := service.NewItemService(*itemRepository, DB, Validate)
-	itemController := controller.NewItemController(*itemService)
+	itemService := service.NewItemService(itemRepository, DB, Validate)
+	itemController := controller.NewItemController(itemService)
 
 	router := route.NewRouter(userController, itemController)
 
@@ -30,6 +30,5 @@ func main() {
 		Handler: router,
 	}
 
-	// server
 	server.ListenAndServe()
 }

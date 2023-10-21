@@ -7,14 +7,14 @@ import (
 	"github.com/julienschmidt/httprouter"
 	"github.com/raafly/inventory-management/helper"
 	"github.com/raafly/inventory-management/model"
-	"github.com/raafly/inventory-management/service"
+	portService "github.com/raafly/inventory-management/service/port"
 )
 
 type ItemControllerImpl struct {
-	ItemService service.ItemServiceImpl
+	ItemService portService.ItemService
 }
 
-func NewItemController(itemService service.ItemServiceImpl) *ItemControllerImpl {
+func NewItemController(itemService portService.ItemService) *ItemControllerImpl {
 	return &ItemControllerImpl{
 		ItemService: itemService,
 	}

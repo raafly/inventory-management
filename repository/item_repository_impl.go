@@ -6,12 +6,13 @@ import (
 
 	"github.com/raafly/inventory-management/entity"
 	"github.com/raafly/inventory-management/helper"
+	"github.com/raafly/inventory-management/repository/port"
 )
 
 type ItemRepositoryImpl struct {
 }
 
-func NewItemRepository() *ItemRepositoryImpl {
+func NewItemRepository() port.ItemRepository {
 	return &ItemRepositoryImpl{}
 }
 

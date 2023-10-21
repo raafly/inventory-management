@@ -7,7 +7,7 @@ import (
 	"github.com/raafly/inventory-management/entity"
 )
 
-type UserPort interface {
+type UserRepository interface {
 	SignUp(ctx context.Context, tx *sql.Tx, user entity.User) entity.User
 	SignIn(ctx context.Context, tx *sql.Tx, user entity.User) (entity.User, error)
 	Update(ctx context.Context, tx *sql.Tx, user entity.User)

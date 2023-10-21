@@ -8,16 +8,19 @@ import (
 	"github.com/raafly/inventory-management/entity"
 	"github.com/raafly/inventory-management/helper"
 	"github.com/raafly/inventory-management/model"
-	"github.com/raafly/inventory-management/repository"
+	portRepository "github.com/raafly/inventory-management/repository/port"
+	portService "github.com/raafly/inventory-management/service/port"
+
 )
 
+
 type ItemServiceImpl struct {
-	ItemRepository		repository.ItemRepositoryImpl
+	ItemRepository		portRepository.ItemRepository
 	DB 					*sql.DB
 	Validate			*validator.Validate
 }
 
-func NewItemService(itemRepository repository.ItemRepositoryImpl, DB *sql.DB, validate *validator.Validate) *ItemServiceImpl {
+func NewItemService(itemRepository portRepository.ItemRepository, DB *sql.DB, validate *validator.Validate) portService.ItemService {
 	return &ItemServiceImpl{
 		ItemRepository: itemRepository,
 		DB: DB,
