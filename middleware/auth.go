@@ -1,43 +1,34 @@
 package middleware
 
 import (
-	"fmt"
 	"net/http"
 
-	"github.com/golang-jwt/jwt/v5"
+	"github.com/raafly/inventory-management/helper"
+	"github.com/raafly/inventory-management/model"
 )
 
 type AuthMiddleware struct {
 	Handler http.Handler
 }
 
-func (m *AuthMiddleware) JWTMiddleware(w http.ResponseWriter, r *http.Request) {
-	// Define your secret key, which should be kept secret in a real application
-	secretKey := []byte("ef74HBH3nf34x34ry7HBSAsdaaDMXdasdUHNghn327zr2")
+func NewAuthMiddleware(handler http.Handler) *AuthMiddleware {
+	return &AuthMiddleware{Handler: handler}
+}
 
-	// Parse the JWT token from the request header
-	tokenString := r.Header.Get("Authorization")
-	if tokenString == "" {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
-		return
-	}
+func (middleware *AuthMiddleware) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
+	if "RAHASIA" == request.Header.Get("X-API-Key") {
+		// ok
+		middleware.Handler.ServeHTTP(writer, request)
+	} else {
+		// error
+		writer.Header().Set("Content-Type", "application/json")
+		writer.WriteHeader(http.StatusUnauthorized)
 
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("UNEXPECTED signing method")
+		webResponse := model.WebResponse {
+			Code:   http.StatusUnauthorized,
+			Status: "UNAUTHORIZED",
 		}
-		return secretKey, nil
-	})
 
-	if err != nil || !token.Valid {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
-		return
+		helper.WriteToRequestBody(writer, webResponse)
 	}
-
-	_, ok := token.Claims.(jwt.MapClaims)
-	if !ok {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
-		return
-	}
-    
 }
