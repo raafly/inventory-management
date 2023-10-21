@@ -3,6 +3,7 @@ package controller
 import (
 	"net/http"
 
+	"github.com/julienschmidt/httprouter"
 	"github.com/raafly/inventory-management/helper"
 	"github.com/raafly/inventory-management/model"
 	"github.com/raafly/inventory-management/service"
@@ -18,7 +19,7 @@ func NewUserController(userService service.UserServiceImpl) *UserControllerImpl 
 	}
 }
 
-func (c *UserControllerImpl) SignIn(w http.ResponseWriter, r *http.Request) {
+func (c *UserControllerImpl) SignIn(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
 	userCreateRequest := model.UserSignIn{}
 	helper.ReadFromRequestBody(r, &userCreateRequest) 
 
@@ -40,7 +41,7 @@ func (c *UserControllerImpl) SignIn(w http.ResponseWriter, r *http.Request) {
 	helper.WriteToRequestBody(w, webResponse)
 }
 
-func (c *UserControllerImpl) SignUp(w http.ResponseWriter, r *http.Request) {
+func (c *UserControllerImpl) SignUp(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
 	userCreateRequest := model.UserSignUp{}
 	helper.ReadFromRequestBody(r, &userCreateRequest)
 
@@ -54,7 +55,7 @@ func (c *UserControllerImpl) SignUp(w http.ResponseWriter, r *http.Request) {
 	helper.WriteToRequestBody(w, webResponse)
 }
 
-func (c *UserControllerImpl) Update(w http.ResponseWriter, r *http.Request) {
+func (c *UserControllerImpl) Update(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
 	userCreateRequest := model.UserUpdate{}
 	helper.ReadFromRequestBody(r, &userCreateRequest)
 
@@ -68,15 +69,15 @@ func (c *UserControllerImpl) Update(w http.ResponseWriter, r *http.Request) {
 	helper.WriteToRequestBody(w, webResponse)	
 }
 
-func (c *UserControllerImpl) Delete(w http.ResponseWriter, r *http.Request) {
+func (c *UserControllerImpl) Delete(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
 	
 }
 
-func (c *UserControllerImpl) FindById(w http.ResponseWriter, r *http.Request) {
+func (c *UserControllerImpl) FindById(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
 
 }
 
-func (c *UserControllerImpl) FindAll(w http.ResponseWriter, r *http.Request) {
+func (c *UserControllerImpl) FindAll(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
 	users := c.UserService.FindAll(r.Context())
 	webResponse := model.WebResponse {
 		Code: 201,

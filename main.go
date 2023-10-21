@@ -23,7 +23,7 @@ func main() {
 	itemService := service.NewItemService(*itemRepository, DB, Validate)
 	itemController := controller.NewItemController(*itemService)
 
-	router := route.NewRouter(*userController, *itemController)
+	router := route.NewRouter(userController, itemController)
 
 	server := http.Server {
 		Addr: "localhost:3000",

@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/julienschmidt/httprouter"
 	"github.com/raafly/inventory-management/helper"
 	"github.com/raafly/inventory-management/model"
 	"github.com/raafly/inventory-management/service"
@@ -19,7 +20,7 @@ func NewItemController(itemService service.ItemServiceImpl) *ItemControllerImpl 
 	}
 }
 
-func (c *ItemControllerImpl) Create(w http.ResponseWriter, r *http.Request) {
+func (c *ItemControllerImpl) Create(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
 	itemCreateRequest := model.ItemCreate{}
 	helper.ReadFromRequestBody(r, &itemCreateRequest)
 
@@ -33,7 +34,7 @@ func (c *ItemControllerImpl) Create(w http.ResponseWriter, r *http.Request) {
 	helper.WriteToRequestBody(w, webResponse)
 }
 
-func (c *ItemControllerImpl) Update(w http.ResponseWriter, r *http.Request) {
+func (c *ItemControllerImpl) Update(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
 	itemCreateRequest := model.ItemUpdate{}
 	helper.ReadFromRequestBody(r, &itemCreateRequest)
 
@@ -47,7 +48,7 @@ func (c *ItemControllerImpl) Update(w http.ResponseWriter, r *http.Request) {
 	helper.WriteToRequestBody(w, webResponse)
 }
 
-func (c *ItemControllerImpl) Delete(w http.ResponseWriter, r *http.Request) {
+func (c *ItemControllerImpl) Delete(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
 	id := r.URL.Query().Get("userId")
 	userId, err := strconv.Atoi(id)
 	helper.PanicIfError(err)
@@ -61,7 +62,7 @@ func (c *ItemControllerImpl) Delete(w http.ResponseWriter, r *http.Request) {
 	helper.WriteToRequestBody(w, webResponse)
 }
 
-func (c *ItemControllerImpl) FindById(w http.ResponseWriter, r *http.Request) {
+func (c *ItemControllerImpl) FindById(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
 	id := r.URL.Query().Get("userId")
 	userId, err := strconv.Atoi(id)
 	helper.PanicIfError(err)
@@ -76,7 +77,7 @@ func (c *ItemControllerImpl) FindById(w http.ResponseWriter, r *http.Request) {
 	helper.WriteToRequestBody(w, webResponse)
 }
 
-func (c *ItemControllerImpl) FindAll(w http.ResponseWriter, r *http.Request) {
+func (c *ItemControllerImpl) FindAll(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
 	items := c.ItemService.FindAll(r.Context())
 	webResponse := model.WebResponse {
 		Code: 201,
