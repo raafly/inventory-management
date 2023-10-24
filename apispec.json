@@ -1,0 +1,506 @@
+{
+    "openapi":"3.0.2",
+    "info": {
+      "title":"API Iventory",
+      "version":"1.0",
+      "description" : "Document api",
+      "contact" : {
+        "name" : "rafly nur ramadhani",
+        "email" : "rafliexecutor375@gmail.com",
+        "url" : "https://github.com/raaflynr"
+      }
+    },
+    "servers": [
+      {"url":"http://localhost:3000/api"}
+    ],
+    "paths": {
+        "/signup" : {
+            "post" : {
+                "tags" : ["users"],
+                "summary" : "signUp",
+                "description" : "api for signUp",
+                "requestBody" : {
+                    "required" : true,
+                    "content" : {
+                        "application/json" : {
+                            "schema" : {
+                                "type" : "object",
+                                "properties" : {
+                                    "username" : {
+                                        "type" : "string",
+                                        "minLength" : 7,
+                                        "required" : true
+                                    },
+                                    "email" : {
+                                        "type" : "string",
+                                        "required" : "true"
+                                    },
+                                    "password" : {
+                                        "type": "string",
+                                        "minLength" : 8,
+                                        "required" : true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses" : {
+                    "201" : {
+                        "description" : "succes create account",
+                        "content" : {
+                            "application/json" : {
+                                "schema" : {
+                                    "type": "object",
+                                    "properties" : {
+                                        "username" : {
+                                            "type" : "string"
+                                        },
+                                        "email" : {
+                                            "type" : "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404" : {
+                        "description" : "please check your data again"
+                    },
+                    "501" : {
+                        "description" : "server is busy :("
+                    }
+                }
+            }
+        },
+        "signin" : {
+            "get" : {
+                "tags" : ["users"],
+                "summary" : "signIn",
+                "description" : "api for signIn",
+                "requestBody" : {
+                    "required" : true,
+                    "content" : {
+                        "application/json" : {
+                            "schema" : {
+                                "type" : "object",
+                                "properties" : {
+                                    "email" : {
+                                        "type" : "string",
+                                        "required" : true
+                                    },
+                                    "password" : {
+                                        "type" : "string",
+                                        "required" : true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses" : {
+                    "200" : {
+                        "description" : "OK"
+                    },
+                    "404" : {
+                        "description" : "not found"
+                    },
+                    "501" : {
+                        "description" : "server is busy :("
+                    }
+                }
+            }
+        },
+        "/users" : {
+            "get" : {
+                "tags" : ["users"],
+                "summary" : "get all users",
+                "description" : "api for get all users",
+                "responses" : {
+                    "200" : {
+                        "description" : "OK",
+                        "content" : {
+                            "application/json" : {
+                                "schema" : {
+                                    "type" : "object",
+                                    "properties" : {
+                                        "code" : {
+                                            "type" : "string"
+                                        },
+                                        "status" : {
+                                            "type" : "string"
+                                        },
+                                        "data" : {
+                                            "type": "array",
+                                            "items" : {
+                                                "type" : "object",
+                                                "properties" : {
+                                                    "id" : {
+                                                        "type" : "string",
+                                                        "required" : true
+                                                    },
+                                                    "username" : {
+                                                        "type" : "string",
+                                                        "required" : true
+                                                    },
+                                                    "email" : {
+                                                        "type" : "string"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/users/{name}" : {
+            "get" : {
+                "tags" : ["users"],
+                "summary" : "get user by id",
+                "description" : "api for get users by id",
+                "parameters": [
+                    {
+                        "name": "Id",
+                        "in": "path",
+                        "description": "id user"
+                    }
+                ],
+                "responses" : {
+                    "200" : {
+                        "description" : "succes get user",
+                        "content" : {
+                            "application/json" : {
+                                "schema" : {
+                                    "type" : "object",
+                                    "properties" : {
+                                        "code" : {
+                                            "type" : "string"
+                                        },
+                                        "status" : {
+                                            "type" : "string"
+                                        },
+                                        "data" : {
+                                            "type" : "object",
+                                            "properties" : {
+                                                "id" : {
+                                                    "type" : "string",
+                                                    "required" : true
+                                                },
+                                                "username" : {
+                                                    "type" : "string",
+                                                    "required" : true
+                                                },
+                                                "email" : {
+                                                    "type" : "string"
+                                                }
+                                            }       
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put" : {
+                "tags" : ["users"],
+                "summary" : "update data user",
+                "description" : "api for update data user",
+                "parameters" : [
+                    {
+                        "name": "Id",
+                        "in": "path",
+                        "description": "id user"
+                    }
+                ],
+                "requestBody" : {
+                    "content" : {
+                        "application/json" : {
+                            "schema" : {
+                                "type" : "object",
+                                "properties" : {
+                                    "username" : {
+                                        "type" : "string"
+                                    },
+                                    "email" : {
+                                        "type" : "string"
+                                    },
+                                    "password" : {
+                                        "type" : "string"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete" : {
+                "tags" : ["users"],
+                "summary" : "delete user by id",
+                "description" : "api for delete user",
+                "parameters" : [
+                    {
+                        "name" : "Id",
+                        "in" : "path",
+                        "description" : "user id"
+                    }
+                ],
+                "responses" : {
+                    "200" : {
+                        "description" : "succes delete account"
+                    },
+                    "404" : {
+                        "description" : "not found"
+                    },
+                    "501" : {
+                        "description" : "server is busy :("
+                    }
+                }
+            }
+        },
+        "/items" : {
+            "post" : {
+                "tags" : ["items"],
+                "summary" : "create new item",
+                "description" : "api for create new item",
+                "requestBody" : {
+                    "content" : {
+                        "application/json" : {
+                            "schema" : {
+                                "type" : "object",
+                                "properties" : {
+                                    "name" : {
+                                        "type" : "string",
+                                        "minLength" : 5,
+                                        "required" : true
+                                    },
+                                    "category" : {
+                                        "type" : "string",
+                                        "required" : true
+                                    },
+                                    "description" : {
+                                        "type" : "string"
+                                    },
+                                    "price" : {
+                                        "type" : "integer",
+                                        "required" : true
+                                    },
+                                    "quantity" : {
+                                        "type" :  "integer",
+                                        "required" : true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "get" : {
+                "tags" : ["items"],
+                "summary" : "get all items",
+                "description" : "api for get all items",
+                "responses" : {
+                    "200" : {
+                        "description" : "OK",
+                        "content" : {
+                            "application/json" : {
+                                "schema" : {
+                                    "type" : "object",
+                                    "properties" : {
+                                        "code" : {
+                                            "type" : "integer"
+                                        },
+                                        "status" : {
+                                            "type" : "string"
+                                        },
+                                        "data" : {
+                                            "type" : "array",
+                                            "items" : {
+                                                "type" : "object",
+                                                "properties" : {
+                                                    "id" : {
+                                                        "type" : "string"
+                                                    },
+                                                    "name" : {
+                                                        "type" : "string"
+                                                    },
+                                                    "category" : {
+                                                        "type" : "string"
+                                                    },
+                                                    "description" : {
+                                                        "type" : "string"
+                                                    },
+                                                    "price" : {
+                                                        "type" : "integer"
+                                                    },
+                                                    "quantity" : {
+                                                        "type" : "integer"
+                                                    },
+                                                    "created_at" : {
+                                                        "type" : "string"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/items/{name}" : {
+            "get" : {
+                "tags" : ["items"],
+                "summary" : "find item by id",
+                "description" : "api for find item by id",
+                "parameters" : [
+                    {
+                        "name" : "Id",
+                        "in" : "path",
+                        "description" : "item id"
+                    }
+                ],
+                "responses" : {
+                    "200" : {
+                        "description" : "succes get item by id",
+                        "content" : {
+                            "application/json" : {
+                                "schema" : {
+                                    "type" : "object",
+                                    "properties" : {
+                                        "code" : {
+                                            "type" : "integer"
+                                        },
+                                        "status" : {
+                                            "type" : "string"
+                                        },
+                                        "data" : {
+                                            "type" : "array",
+                                            "items" : {
+                                                "type" : "object",
+                                                "properties" : {
+                                                    "id" : {
+                                                        "type" : "string"
+                                                    },
+                                                    "name" : {
+                                                        "type" : "string"
+                                                    },
+                                                    "category" : {
+                                                        "type" : "string"
+                                                    },
+                                                    "description" : {
+                                                        "type" : "string"
+                                                    },
+                                                    "price" : {
+                                                        "type" : "integer"
+                                                    },
+                                                    "quantity" : {
+                                                        "type" : "integer"
+                                                    },
+                                                    "created_at" : {
+                                                        "type" : "string"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404" : {
+                        "description" : "not found"
+                    },
+                    "501" : {
+                        "description" : "server is busy :("
+                    }
+                }
+            },
+            "put" : {
+                "tags" : ["items"],
+                "summary" : "find item by id",
+                "description" : "api for find item by id",
+                "parameters" : [
+                    {
+                        "name" : "Id",
+                        "in" : "path",
+                        "description" : "item id"
+                    }
+                ],
+                "requestBody" : {
+                    "content" : {
+                        "application/json" : {
+                            "schema" : {
+                                "type" : "object",
+                                "properties" : {
+                                    "description" : {
+                                        "type" : "string"
+                                    },
+                                    "price" : {
+                                        "type" : "integer"
+                                    },
+                                    "quantity" : {
+                                        "type" : "integer"
+                                    }
+
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses" : {
+                    "200" : {
+                        "description" : "OK",
+                        "content" : {
+                            "application/json" : {
+                                "schema" : {
+                                    "type" : "object",
+                                    "properties" : {
+                                        "id" : {
+                                            "type" : "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404" : {
+                        "description" : "not found"
+                    },
+                    "501" : {
+                        "description" :"server is busy :("
+                    }
+                }
+            },
+            "delete" : {
+                "tags" : ["items"],
+                "summary" : "find item by id",
+                "description" : "api for find item by id",
+                "parameters" : [
+                    {
+                        "name" : "Id",
+                        "in" : "path",
+                        "description" : "item id"
+                    }
+                ],
+                "responses"  : {
+                    "200" : {
+                        "description" : "OK"
+                    },
+                    "404" : {
+                        "description" :"not found"
+                    },
+                    "501" : {
+                        "description" : "server is busy :("
+                    }
+                }                
+            }
+        }
+    }
+  }

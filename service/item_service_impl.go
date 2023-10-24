@@ -3,16 +3,17 @@ package service
 import (
 	"context"
 	"database/sql"
+	"time"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/oklog/ulid/v2"
 	"github.com/raafly/inventory-management/entity"
 	"github.com/raafly/inventory-management/helper"
 	"github.com/raafly/inventory-management/model"
 	portRepository "github.com/raafly/inventory-management/repository/port"
 	portService "github.com/raafly/inventory-management/service/port"
-
+	"golang.org/x/exp/rand"
 )
-
 
 type ItemServiceImpl struct {
 	ItemRepository		portRepository.ItemRepository
@@ -36,10 +37,16 @@ func (s *ItemServiceImpl) Create(ctx context.Context, request model.ItemCreate) 
 	defer helper.CommitOrRollback(tx)
 	helper.PanicIfError(err)
 
+	entropy := rand.New(rand.NewSource(uint64(time.Now().UnixNano())))
+	ms := ulid.Timestamp(time.Now())
+	id, err := ulid.New(ms, entropy)
+	uniqueId := id.String()
+
 	item := entity.Item {
-		Id: request.Id,
+		Id: uniqueId,
 		Name: request.Name,
-		Quantity: request.Id,
+		Category: request.Category,
+		Quantity: request.Quantity,
 	}
 
 	item = s.ItemRepository.Create(ctx, tx, item)
@@ -55,7 +62,7 @@ func (s *ItemServiceImpl) Update(ctx context.Context, request model.ItemUpdate) 
 	helper.PanicIfError(err)	
 
 	item := entity.Item {
-		Id: request.Id,
+		Name: request.Name,
 		Quantity: request.Quantity,
 	}
 
@@ -63,23 +70,23 @@ func (s *ItemServiceImpl) Update(ctx context.Context, request model.ItemUpdate) 
 	return helper.ToItemResponse(item)
 }
 
-func (s *ItemServiceImpl) Delete(ctx context.Context, itemId int) {
+func (s *ItemServiceImpl) Delete(ctx context.Context, itemName string) {
 	tx, err := s.DB.Begin()
 	defer helper.CommitOrRollback(tx)
 	helper.PanicIfError(err)	
 
-	item, err := s.ItemRepository.FindById(ctx, tx, itemId)
+	item, err := s.ItemRepository.FindById(ctx, tx, itemName)
 	helper.PanicIfError(err)
 
-	s.ItemRepository.Delete(ctx, tx, item.Id)
+	s.ItemRepository.Delete(ctx, tx, item.Name)
 }
 
-func (s *ItemServiceImpl) FindById(ctx context.Context, itemId int ) model.ItemResponse {
+func (s *ItemServiceImpl) FindById(ctx context.Context, itemName string ) model.ItemResponse {
 	tx, err := s.DB.Begin()
 	defer helper.CommitOrRollback(tx)
 	helper.PanicIfError(err)	
 
-	item, err := s.ItemRepository.FindById(ctx, tx, itemId)
+	item, err := s.ItemRepository.FindById(ctx, tx, itemName)
 	helper.PanicIfError(err)
 	
 	return helper.ToItemResponse(item)

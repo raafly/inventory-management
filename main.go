@@ -1,8 +1,8 @@
-package vault
+package main
 
 import (
 	"net/http"
-
+	
 	"github.com/go-playground/validator/v10"
 	"github.com/raafly/inventory-management/config"
 	"github.com/raafly/inventory-management/controller"

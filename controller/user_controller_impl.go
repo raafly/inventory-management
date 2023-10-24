@@ -2,7 +2,7 @@ package controller
 
 import (
 	"net/http"
-
+	
 	"github.com/julienschmidt/httprouter"
 	"github.com/raafly/inventory-management/helper"
 	"github.com/raafly/inventory-management/model"
@@ -62,17 +62,36 @@ func (c *UserControllerImpl) Update(w http.ResponseWriter, r *http.Request, para
 	webResponse := model.WebResponse {
 		Code: 201,
 		Status: "SUCCESS",
-		Data: nil,
 	}
 
 	helper.WriteToRequestBody(w, webResponse)	
 }
 
 func (c *UserControllerImpl) Delete(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
-	
+	username := params.ByName("username")
+	c.UserService.Delete(r.Context(), username)	
+
+	response := model.WebResponse {
+		Code: 200,
+		Status: "OK",
+	}
+
+	helper.WriteToRequestBody(w, response)
 }
 
 func (c *UserControllerImpl) FindById(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
+	userRequest := model.UserUpdate{}
+	helper.ReadFromRequestBody(r, &userRequest)
+
+	username := params.ByName("username")
+	c.UserService.FindById(r.Context(), username)
+
+	response := model.WebResponse {
+		Code: 200,
+		Status: "OK",
+	}
+
+	helper.WriteToRequestBody(w, response)
 
 }
 
