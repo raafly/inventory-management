@@ -7,36 +7,32 @@ import (
 
 	"github.com/raafly/inventory-management/entity"
 	"github.com/raafly/inventory-management/helper"
+	"github.com/raafly/inventory-management/repository/port"
 )
 
 type UserRepositoryImpl struct{
 }
 
-func NewUserRepository() *UserRepositoryImpl {
+func NewUserRepository() port.UserRepository {
 	return &UserRepositoryImpl{}
 }
 
 func (r *UserRepositoryImpl) SignUp(ctx context.Context, tx *sql.Tx, user entity.User) entity.User {
-	SQL := "INSERT INTO users(id, username, email, password) VALUES(?, ?, ?, ?)"
-	result, err := tx.ExecContext(ctx, SQL, user.Id, user.Username, user.Email, user.Password) 
+	SQL := "INSERT INTO users (id, username, email, password) VALUES ($1, $2, $3, $4) "
+	_, err := tx.ExecContext(ctx, SQL, user.Id, user.Username, user.Email, user.Password) 
 	helper.PanicIfError(err)
-
-	id, err := result.LastInsertId()
-	helper.PanicIfError(err)
-
-	user.Id = int(id)
 	return user
 } 
 
 func (r *UserRepositoryImpl) SignIn(ctx context.Context, tx *sql.Tx, user entity.User) (entity.User, error) {
-	SQL := "SELECT email, password FROM users WHERE email = ? AND password = ?"
-	rows, err := tx.QueryContext(ctx, SQL, user.Email, user.Password)
+	SQL := "SELECT id, username, email, password FROM users WHERE email = $1"
+	rows, err := tx.QueryContext(ctx, SQL, user.Email)
 	helper.PanicIfError(err)
 	defer rows.Close()
 
 	user = entity.User{}
 	if rows.Next() {
-		err := rows.Scan(&user.Username, &user.Email)
+		err := rows.Scan(&user.Id, &user.Username, &user.Email, &user.Password)
 		helper.PanicIfError(err)
 		return user, nil
 	} else {
@@ -45,20 +41,25 @@ func (r *UserRepositoryImpl) SignIn(ctx context.Context, tx *sql.Tx, user entity
 }
 
 func (r *UserRepositoryImpl) Update(ctx context.Context, tx *sql.Tx, user entity.User) {
-	SQL := "UPDATE FROM users SET password = ? WHERE email = ?"
+	SQL := "UPDATE FROM users SET password = $1 WHERE email = $2"
 	_, err := tx.ExecContext(ctx, SQL, user.Password, user.Email)
 	helper.PanicIfError(err)
 }
 
-func (r *UserRepositoryImpl) Delete(ctx context.Context, tx *sql.Tx, userId int) {
-	SQL := "DELETE FROM users WHERE id = ?"
-	_, err := tx.ExecContext(ctx, SQL, userId)
-	helper.PanicIfError(err)
+func (r *UserRepositoryImpl) Delete(ctx context.Context, tx *sql.Tx, userName string) error {
+	SQL := "DELETE FROM users WHERE username = $1"
+	_, err := tx.ExecContext(ctx, SQL, userName)
+
+	if err != nil {
+		return errors.New("username not found ")
+	} else {
+		return nil
+	}
 }
 
-func (r *UserRepositoryImpl) FindById(ctx context.Context, tx *sql.Tx, userId int) (entity.User, error) {
-	SQL := "SELECT username, email FROM users WHERE id = ?"
-	rows, err := tx.QueryContext(ctx, SQL, userId)
+func (r *UserRepositoryImpl) FindById(ctx context.Context, tx *sql.Tx, userName string) (entity.User, error) {
+	SQL := "SELECT username, email FROM users WHERE username = $1"
+	rows, err := tx.QueryContext(ctx, SQL, userName)
 	helper.PanicIfError(err)
 	defer rows.Close()
 

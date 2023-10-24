@@ -8,18 +8,18 @@ import (
 func NewRouter(user port.UserController, item port.ItemController) *httprouter.Router {
 	router := httprouter.New()
 
-	router.POST("/api/users", user.SignUp)
-	router.GET("/api/users", user.SignIn)
-	router.PUT("/api/users/:id", user.Update)
-	router.GET("/api/users/:id", user.FindById)
+	router.POST("/api/users/signup", user.SignUp)
+	router.POST("/api/users/signin", user.SignIn)
+	router.PUT("/api/users/:username", user.Update)
+	router.GET("/api/users/:username", user.FindById)
 	router.GET("/api/users/", user.FindAll)
-	router.DELETE("/api/users/:id", user.Delete)
+	router.DELETE("/api/users/:username", user.Delete)
 	
 	router.POST("/api/items", item.Create)
-	router.PUT("/api/items/:id", item.Update)
-	router.GET("/api/items/:id", item.FindById)
+	router.PUT("/api/items/:name", item.Update)
+	router.GET("/api/items/:name", item.FindById)
 	router.GET("/api/items/", item.FindAll)
-	router.DELETE("/api/items/:id", item.Delete)
+	router.DELETE("/api/items/:name", item.Delete)
 
 	return router
 }

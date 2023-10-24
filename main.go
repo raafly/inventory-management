@@ -1,8 +1,8 @@
-package vault
+package main
 
 import (
 	"net/http"
-
+	
 	"github.com/go-playground/validator/v10"
 	"github.com/raafly/inventory-management/config"
 	"github.com/raafly/inventory-management/controller"
@@ -16,12 +16,12 @@ func main() {
 	Validate := validator.New()
 
 	userRepository := repository.NewUserRepository()
-	userService := service.NewUserService(*userRepository, DB, Validate)
-	userController := controller.NewUserController(*userService)
+	userService := service.NewUserService(userRepository, DB, Validate)
+	userController := controller.NewUserController(userService)
 
 	itemRepository := repository.NewItemRepository()
-	itemService := service.NewItemService(*itemRepository, DB, Validate)
-	itemController := controller.NewItemController(*itemService)
+	itemService := service.NewItemService(itemRepository, DB, Validate)
+	itemController := controller.NewItemController(itemService)
 
 	router := route.NewRouter(userController, itemController)
 

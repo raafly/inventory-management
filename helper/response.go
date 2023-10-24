@@ -27,6 +27,7 @@ func ToItemResponse(item entity.Item) model.ItemResponse {
 	return model.ItemResponse{
 		Id: item.Id,
 		Name: item.Name,
+		Category: item.Category,
 		Quantity: item.Quantity,
 	}
 }

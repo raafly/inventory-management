@@ -2,18 +2,18 @@ package controller
 
 import (
 	"net/http"
-
+	
 	"github.com/julienschmidt/httprouter"
 	"github.com/raafly/inventory-management/helper"
 	"github.com/raafly/inventory-management/model"
-	"github.com/raafly/inventory-management/service"
+	portService "github.com/raafly/inventory-management/service/port"
 )
 
 type UserControllerImpl struct{
-	UserService 	service.UserServiceImpl
+	UserService 	portService.UserService
 }
 
-func NewUserController(userService service.UserServiceImpl) *UserControllerImpl {
+func NewUserController(userService portService.UserService) *UserControllerImpl {
 	return &UserControllerImpl{
 		UserService: userService,
 	}
@@ -29,7 +29,6 @@ func (c *UserControllerImpl) SignIn(w http.ResponseWriter, r *http.Request, para
 		Status: "SUCCESS",
 		Data: user,
 	}
-
 
 	http.SetCookie(w, &http.Cookie{
 		Name: "token",
@@ -63,17 +62,36 @@ func (c *UserControllerImpl) Update(w http.ResponseWriter, r *http.Request, para
 	webResponse := model.WebResponse {
 		Code: 201,
 		Status: "SUCCESS",
-		Data: nil,
 	}
 
 	helper.WriteToRequestBody(w, webResponse)	
 }
 
 func (c *UserControllerImpl) Delete(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
-	
+	username := params.ByName("username")
+	c.UserService.Delete(r.Context(), username)	
+
+	response := model.WebResponse {
+		Code: 200,
+		Status: "OK",
+	}
+
+	helper.WriteToRequestBody(w, response)
 }
 
 func (c *UserControllerImpl) FindById(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
+	userRequest := model.UserUpdate{}
+	helper.ReadFromRequestBody(r, &userRequest)
+
+	username := params.ByName("username")
+	c.UserService.FindById(r.Context(), username)
+
+	response := model.WebResponse {
+		Code: 200,
+		Status: "OK",
+	}
+
+	helper.WriteToRequestBody(w, response)
 
 }
 

@@ -2,19 +2,18 @@ package controller
 
 import (
 	"net/http"
-	"strconv"
 
 	"github.com/julienschmidt/httprouter"
 	"github.com/raafly/inventory-management/helper"
 	"github.com/raafly/inventory-management/model"
-	"github.com/raafly/inventory-management/service"
+	portService "github.com/raafly/inventory-management/service/port"
 )
 
 type ItemControllerImpl struct {
-	ItemService service.ItemServiceImpl
+	ItemService portService.ItemService
 }
 
-func NewItemController(itemService service.ItemServiceImpl) *ItemControllerImpl {
+func NewItemController(itemService portService.ItemService) *ItemControllerImpl {
 	return &ItemControllerImpl{
 		ItemService: itemService,
 	}
@@ -38,12 +37,6 @@ func (c *ItemControllerImpl) Update(w http.ResponseWriter, r *http.Request, para
 	itemCreateRequest := model.ItemUpdate{}
 	helper.ReadFromRequestBody(r, &itemCreateRequest)
 
-	param := params.ByName("id")
-	id, err := strconv.Atoi(param)
-	helper.PanicIfError(err)
-
-	itemCreateRequest.Id = id
-
 	item := c.ItemService.Update(r.Context(), itemCreateRequest)
 	webResponse := model.WebResponse {
 		Code: 201,
@@ -55,11 +48,9 @@ func (c *ItemControllerImpl) Update(w http.ResponseWriter, r *http.Request, para
 }
 
 func (c *ItemControllerImpl) Delete(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
-	param := params.ByName("id")
-	id, err := strconv.Atoi(param)
-	helper.PanicIfError(err)
-
-	c.ItemService.Delete(r.Context(), id)
+	Id := params.ByName("name")
+	
+	c.ItemService.Delete(r.Context(), Id)
 	webResponse := model.WebResponse {
 		Code: 201,
 		Status: "SUCCESS",
@@ -69,11 +60,9 @@ func (c *ItemControllerImpl) Delete(w http.ResponseWriter, r *http.Request, para
 }
 
 func (c *ItemControllerImpl) FindById(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
-	param := params.ByName("id")
-	id, err := strconv.Atoi(param)
-	helper.PanicIfError(err)
+	Id := params.ByName("name")
 
-	item := c.ItemService.FindById(r.Context(), id)
+	item := c.ItemService.FindById(r.Context(), Id)
 	webResponse := model.WebResponse {
 		Code: 201,
 		Status: "SUCCESS",
