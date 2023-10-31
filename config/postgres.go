@@ -3,8 +3,8 @@ package config
 import (
 	"database/sql"
 	"time"
-	_ "github.com/lib/pq"
 
+	_ "github.com/lib/pq"
 	"github.com/raafly/inventory-management/helper"
 )
 

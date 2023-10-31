@@ -1,11 +1,10 @@
-package route
+package listing
 
 import (
 	"github.com/julienschmidt/httprouter"
-	"github.com/raafly/inventory-management/controller/port"
 )
 
-func NewRouter(user port.UserController, item port.ItemController) *httprouter.Router {
+func NewRouter(user UserController, item ItemController) *httprouter.Router {
 	router := httprouter.New()
 
 	router.POST("/api/users/signup", user.SignUp)

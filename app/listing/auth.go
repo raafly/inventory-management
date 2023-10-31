@@ -1,10 +1,9 @@
-package middleware
+package listing
 
 import (
 	"net/http"
 
 	"github.com/raafly/inventory-management/helper"
-	"github.com/raafly/inventory-management/model"
 )
 
 type AuthMiddleware struct {
@@ -24,7 +23,7 @@ func (middleware *AuthMiddleware) ServeHTTP(writer http.ResponseWriter, request 
 		writer.Header().Set("Content-Type", "application/json")
 		writer.WriteHeader(http.StatusUnauthorized)
 
-		webResponse := model.WebResponse {
+		webResponse := WebResponse {
 			Code:   http.StatusUnauthorized,
 			Status: "UNAUTHORIZED",
 		}
