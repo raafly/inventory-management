@@ -167,3 +167,22 @@ func (r *ItemRepositoryImpl) FindAll(ctx context.Context, tx *sql.Tx) []Item {
 
 	return item
 }
+
+// category
+
+type CategoryRepository	interface {
+	Create(ctx context.Context, tx *sql.Tx, data Category) 
+}
+
+type CategoryRepositoryImpl struct {
+}
+
+func NewCategoryRepository() CategoryRepository {
+	return &CategoryRepositoryImpl{}
+}
+
+func (repo *CategoryRepositoryImpl) Create(ctx context.Context, tx *sql.Tx, data Category) {
+	SQL := "INSERT INTO categories(id, name, description) VALUES($1, $2, $3)"
+	_, err := tx.ExecContext(ctx, SQL, data.Id, data.Name, data.Description) 
+	helper.PanicIfError(err)
+}

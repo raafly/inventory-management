@@ -198,3 +198,36 @@ func (c *ItemControllerImpl) FindAll(w http.ResponseWriter, r *http.Request, par
 
 	helper.WriteToRequestBody(w, webResponse)
 }
+
+// category
+
+type CategoryHandler interface {
+	Create(w http.ResponseWriter, r *http.Request, params httprouter.Params)
+}
+
+type CategoryHandlerImpl struct {
+	CategoryService		CategoryService
+}
+
+func NewCategoryHandler(categoryService CategoryService) CategoryHandler {
+	return &CategoryHandlerImpl{
+		CategoryService: categoryService,
+	}
+}
+
+
+func (h *CategoryHandlerImpl) Create(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
+	request := CategoryCreate{}
+	helper.ReadFromRequestBody(r, &request)
+
+	err := h.CategoryService.CreateCtg(r.Context(), request)
+	helper.PanicIfError(err)
+
+	response := WebResponse {
+		Code: 201,
+		Status: "CREATED",
+	}
+
+	helper.WriteToRequestBody(w, response)
+}
+

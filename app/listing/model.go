@@ -78,6 +78,21 @@ type ItemResponse struct {
 	Quantity	int				`json:"quantity"`
 }
 
+// category 
+
+type Category struct {
+	Id				string
+	Name			string
+	Description		string
+}
+
+type CategoryCreate struct {
+	Id				string	`json:"id" validate:"required"`
+	Name			string	`json:"name" validate:"required"`
+	Description		string	`json:"description" validate:"required"`
+}
+
+
 // web
 
 type WebResponse struct {
@@ -85,3 +100,4 @@ type WebResponse struct {
 	Status		string
 	Data		interface{}
 }
+
