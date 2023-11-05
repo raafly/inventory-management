@@ -9,9 +9,7 @@ func NewRouter(user UserController, item ItemController, category CategoryHandle
 
 	router.POST("/api/users/signup", user.SignUp)
 	router.POST("/api/users/signin", user.SignIn)
-	router.PUT("/api/users/:username", user.Update)
 	router.GET("/api/users/:username", user.FindById)
-	router.GET("/api/users/", user.FindAll)
 	router.DELETE("/api/users/:username", user.Delete)
 	
 	router.POST("/api/items", item.Create)

@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/go-playground/validator/v10"
-	"github.com/raafly/inventory-management/app/listing"
+	"github.com/raafly/inventory-management/internal/listing"
 	"github.com/raafly/inventory-management/config"
 )
 

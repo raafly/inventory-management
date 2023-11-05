@@ -17,11 +17,9 @@ import (
 
 type UserService interface{
 	SignUp(ctx context.Context, request UserSignUp) UserResponse
-	SignIn(ctx context.Context, request UserSignIn) (UserResponse, string)
-	Update(ctx context.Context, request UserUpdate)
+	SignIn(ctx context.Context, request UserSignIn) (*UserResponse, string, error)
 	Delete(ctx context.Context, userName string) error
-	FindById(ctx context.Context, userName string) UserResponse
-	FindAll(ctx context.Context) []UserResponse
+	FindById(ctx context.Context, userName string) (*UserResponse, error)
 } 
 
 type UserServiceImpl struct {
@@ -37,7 +35,6 @@ func NewUserService(userRepository 	UserRepository, DB *sql.DB, validate *valida
 		Validate: validate,
 	}
 }
-
 
 func (s *UserServiceImpl) SignUp(ctx context.Context, request UserSignUp) UserResponse {
 	err := s.Validate.Struct(request)
@@ -66,7 +63,7 @@ func (s *UserServiceImpl) SignUp(ctx context.Context, request UserSignUp) UserRe
 	return ToUserResponse(user)
 }
 
-func (s *UserServiceImpl) SignIn(ctx context.Context, request UserSignIn) (UserResponse, string) {
+func (s *UserServiceImpl) SignIn(ctx context.Context, request UserSignIn) (*UserResponse, string, error) {
 	err := s.Validate.Struct(request)
 	helper.PanicIfError(err)
 
@@ -81,9 +78,13 @@ func (s *UserServiceImpl) SignIn(ctx context.Context, request UserSignIn) (UserR
 
 	user, err := s.UserRepository.SignIn(ctx, tx, data)
 
+	var salah *UserResponse
+	
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(data.Password))
-	helper.PanicIfError(err)
-
+	if err != nil {
+		return salah, "", errors.New("username and password not match")
+	}
+	
 	expTime := time.Now().Add(time.Minute * 1)
 	claims := &config.JWTClaims{
 		Username: user.Username,
@@ -97,23 +98,14 @@ func (s *UserServiceImpl) SignIn(ctx context.Context, request UserSignIn) (UserR
 	token, err := tokenAlgo.SignedString(config.JWT_KEY)
 	helper.PanicIfError(err)
 
-	return ToUserResponse(user), token
-}
 
-func (s *UserServiceImpl) Update(ctx context.Context, request UserUpdate) {
-	err := s.Validate.Struct(request)
-	helper.PanicIfError(err)
-
-	tx, err := s.DB.Begin()
-	defer helper.CommitOrRollback(tx)
-	helper.PanicIfError(err)	
-
-	user := User {
-		Email: request.Email,
-		Password: request.Password,
+	response := UserResponse {
+		Id: data.Id,
+		Username: data.Username,
+		Email: data.Email,
 	}
 
-	s.UserRepository.Update(ctx, tx, user)
+	return &response, token, nil
 }
 
 func (s *UserServiceImpl) Delete(ctx context.Context, userName string) error {
@@ -121,33 +113,34 @@ func (s *UserServiceImpl) Delete(ctx context.Context, userName string) error {
 	defer helper.CommitOrRollback(tx)
 	helper.PanicIfError(err)	
 
-	err = s.UserRepository.Delete(ctx, tx, userName)
+	user, err := s.UserRepository.FindById(ctx, tx, userName)
 	if err != nil {
 		return errors.New("username not found")
-	} else {
-		return nil
 	}
+
+	s.UserRepository.Delete(ctx, tx, user.Username)
+	return nil
 }
 
-func (s *UserServiceImpl) FindById(ctx context.Context, userName string) UserResponse {
+func (s *UserServiceImpl) FindById(ctx context.Context, userName string) (*UserResponse, error) {
 	tx, err := s.DB.Begin()
 	defer helper.CommitOrRollback(tx)
-	helper.PanicIfError(err)	
-
-	user, err := s.UserRepository.FindById(ctx, tx, userName)
 	helper.PanicIfError(err)
 
-	return ToUserResponse(user)
+	user, err := s.UserRepository.FindById(ctx, tx, userName)
+	if err != nil {
+		return nil, err
+	}
+
+	response := UserResponse {
+		Id: user.Id,
+		Username: user.Username,
+		Email: user.Email,
+	}
+
+	return &response, nil
 }
 
-func (s *UserServiceImpl) FindAll(ctx context.Context) []UserResponse {
-	tx, err := s.DB.Begin()
-	defer helper.CommitOrRollback(tx)
-	helper.PanicIfError(err)	
-
-	users := s.UserRepository.FindAll(ctx, tx)
-	return ToUserResponses(users)
-}
 
 // item
 

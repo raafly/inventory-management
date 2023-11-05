@@ -1,6 +1,7 @@
 package listing
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/julienschmidt/httprouter"
@@ -10,10 +11,8 @@ import (
 type UserController interface{
 	SignIn(w http.ResponseWriter, r *http.Request, params httprouter.Params)
 	SignUp(w http.ResponseWriter, r *http.Request, params httprouter.Params)
-	Update(w http.ResponseWriter, r *http.Request, params httprouter.Params)
 	Delete(w http.ResponseWriter, r *http.Request, params httprouter.Params)
 	FindById(w http.ResponseWriter, r *http.Request, params httprouter.Params)
-	FindAll(w http.ResponseWriter, r *http.Request, params httprouter.Params)
 }
 
 type UserControllerImpl struct{
@@ -30,7 +29,8 @@ func (c *UserControllerImpl) SignIn(w http.ResponseWriter, r *http.Request, para
 	userCreateRequest := UserSignIn{}
 	helper.ReadFromRequestBody(r, &userCreateRequest) 
 
-	user, token := c.UserService.SignIn(r.Context(), userCreateRequest)	
+	user, token, err := c.UserService.SignIn(r.Context(), userCreateRequest)	
+	helper.PanicIfError(err)
 	webResponse := WebResponse {
 		Code: 201,
 		Status: "SUCCESS",
@@ -61,19 +61,6 @@ func (c *UserControllerImpl) SignUp(w http.ResponseWriter, r *http.Request, para
 	helper.WriteToRequestBody(w, webResponse)
 }
 
-func (c *UserControllerImpl) Update(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
-	userCreateRequest := UserUpdate{}
-	helper.ReadFromRequestBody(r, &userCreateRequest)
-
-	c.UserService.Update(r.Context(), userCreateRequest)
-	webResponse := WebResponse {
-		Code: 201,
-		Status: "SUCCESS",
-	}
-
-	helper.WriteToRequestBody(w, webResponse)	
-}
-
 func (c *UserControllerImpl) Delete(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
 	username := params.ByName("username")
 	c.UserService.Delete(r.Context(), username)	
@@ -87,10 +74,8 @@ func (c *UserControllerImpl) Delete(w http.ResponseWriter, r *http.Request, para
 }
 
 func (c *UserControllerImpl) FindById(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
-	userRequest := UserUpdate{}
-	helper.ReadFromRequestBody(r, &userRequest)
-
 	username := params.ByName("username")
+	log.Println(username)
 	c.UserService.FindById(r.Context(), username)
 
 	response := WebResponse {
@@ -100,17 +85,6 @@ func (c *UserControllerImpl) FindById(w http.ResponseWriter, r *http.Request, pa
 
 	helper.WriteToRequestBody(w, response)
 
-}
-
-func (c *UserControllerImpl) FindAll(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
-	users := c.UserService.FindAll(r.Context())
-	webResponse := WebResponse {
-		Code: 201,
-		Status: "SUCCESS",
-		Data: users,
-	}
-
-	helper.WriteToRequestBody(w, webResponse)
 }
 
 // item 

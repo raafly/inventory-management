@@ -9,23 +9,26 @@ type User struct {
 	Username	string
 	Email		string
 	Password	string
+	Cpassword	string
 	Created_at	string
 }
 
 type UserSignUp struct {
 	Username	string	`json:"username" validate:"required"`
-	Email		string	`json:"email" validate:"required"`
-	Password	string	`json:"password" validate:"required"`
+	Email		string	`json:"email" validate:"required,email"`
+	Password	string	`json:"password" validate:"required,min=8"`
+	Cpassword	string	`json:"confirm_password" validate:"required,min=8"`
 }
 
 type UserSignIn struct {
-	Email		string	`json:"email" validate:"required"`
-	Password	string	`json:"password" validate:"required"`
+	Email		string	`json:"email" validate:"required,email"`
+	Password	string	`json:"password" validate:"required,min=8"`
 }
 
 type UserUpdate struct {
-	Email		string	`json:"email" validate:"required"`
-	Password	string	`json:"password" validate:"required"`
+	Username	string	`json:"username" required:"username"`
+	Email		string	`json:"email" validate:"required,email"`
+	Password	string	`json:"password" validate:"required,min=8"`
 }
 
 type UserResponse struct {
