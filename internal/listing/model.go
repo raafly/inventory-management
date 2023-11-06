@@ -92,6 +92,11 @@ type Category struct {
 type CategoryCreate struct {
 	Id				string	`json:"id" validate:"required"`
 	Name			string	`json:"name" validate:"required"`
+	Description		string	`json:"description"`
+}
+
+type CategoryUpdate struct {
+	Id 				string	`json:"id" validate:"required"`
 	Description		string	`json:"description" validate:"required"`
 }
 

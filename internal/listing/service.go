@@ -241,7 +241,8 @@ func (s *ItemServiceImpl) FindAll(ctx context.Context) []ItemResponse {
 // category
 
 type CategoryService interface {
-	CreateCtg(ctx context.Context, request CategoryCreate) error
+	Save(ctx context.Context, request CategoryCreate) error
+	Update(ctx context.Context, request CategoryUpdate) (*Category, error)
 }
 
 type CategoryServiceImpl struct {
@@ -258,7 +259,7 @@ func NewCategoryService(categoryRepository CategoryRepository, DB *sql.DB, valid
 	}
 }
 
-func (s *CategoryServiceImpl) CreateCtg(ctx context.Context, request CategoryCreate) error {
+func (s *CategoryServiceImpl) Save(ctx context.Context, request CategoryCreate) error {
 	err := s.Validate.Struct(request)
 	helper.PanicIfError(err)
 
@@ -275,4 +276,25 @@ func (s *CategoryServiceImpl) CreateCtg(ctx context.Context, request CategoryCre
 	s.CategoryRepository.Create(ctx, tx, data)
 
 	return nil
+}
+
+func (s *CategoryServiceImpl) Update(ctx context.Context, request CategoryUpdate) (*Category, error) {
+	err := s.Validate.Struct(request)
+	helper.PanicIfError(err)
+
+	tx, err := s.DB.Begin()
+	defer helper.CommitOrRollback(tx)
+	helper.PanicIfError(err)
+
+	get := Category {
+		Id:  request.Id,
+		Description: request.Description,
+	}
+
+	data, err := s.CategoryRepository.Update(ctx, tx, &get)
+	if err != nil {
+		return nil, err
+	}
+
+	return data, nil
 }

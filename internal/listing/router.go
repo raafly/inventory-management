@@ -21,6 +21,7 @@ func NewRouter(user UserController, item ItemController, category CategoryHandle
 	// category
 
 	router.POST("/api/items/category", category.Create)
+	router.PUT("/api/category/:categoryId", category.Update)
 
 	return router
 }

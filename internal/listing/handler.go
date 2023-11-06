@@ -76,11 +76,14 @@ func (c *UserControllerImpl) Delete(w http.ResponseWriter, r *http.Request, para
 func (c *UserControllerImpl) FindById(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
 	username := params.ByName("username")
 	log.Println(username)
-	c.UserService.FindById(r.Context(), username)
+
+	user, err := c.UserService.FindById(r.Context(), username)
+	helper.PanicIfError(err)
 
 	response := WebResponse {
 		Code: 200,
 		Status: "OK",
+		Data: user,
 	}
 
 	helper.WriteToRequestBody(w, response)
@@ -177,6 +180,7 @@ func (c *ItemControllerImpl) FindAll(w http.ResponseWriter, r *http.Request, par
 
 type CategoryHandler interface {
 	Create(w http.ResponseWriter, r *http.Request, params httprouter.Params)
+	Update(w http.ResponseWriter, r *http.Request, params httprouter.Params)
 }
 
 type CategoryHandlerImpl struct {
@@ -194,7 +198,7 @@ func (h *CategoryHandlerImpl) Create(w http.ResponseWriter, r *http.Request, par
 	request := CategoryCreate{}
 	helper.ReadFromRequestBody(r, &request)
 
-	err := h.CategoryService.CreateCtg(r.Context(), request)
+	err := h.CategoryService.Save(r.Context(), request)
 	helper.PanicIfError(err)
 
 	response := WebResponse {
@@ -205,3 +209,22 @@ func (h *CategoryHandlerImpl) Create(w http.ResponseWriter, r *http.Request, par
 	helper.WriteToRequestBody(w, response)
 }
 
+func (h *CategoryHandlerImpl) Update(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
+	request := CategoryUpdate{}
+	helper.ReadFromRequestBody(r, &request)
+
+	id := params.ByName("categoryId")
+	request.Id = id
+
+	data, err := h.CategoryService.Update(r.Context(), request)
+	helper.PanicIfError(err)
+
+	response := WebResponse {
+		Code: 201,
+		Status: "OK",
+		Data: data,
+	}
+
+	helper.WriteToRequestBody(w, response)
+
+}	

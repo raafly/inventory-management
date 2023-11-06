@@ -60,6 +60,7 @@ func (r *UserRepositoryImpl) Delete(ctx context.Context, tx *sql.Tx, userName st
 }
 
 func (r *UserRepositoryImpl) FindById(ctx context.Context, tx *sql.Tx, userName string) (*User, error) {
+	var user User
 	SQL := "SELECT usermame, email, password FROM users WHERE username = $1"
 	rows, err := tx.QueryContext(ctx, SQL, userName)
 	if err != nil {
@@ -67,7 +68,6 @@ func (r *UserRepositoryImpl) FindById(ctx context.Context, tx *sql.Tx, userName 
 	}
 	defer rows.Close()
 
-	var user User
 	if rows.Next() {
 		err := rows.Scan(&user.Username, &user.Email, &user.Password)
 		helper.PanicIfError(err)
@@ -151,7 +151,8 @@ func (r *ItemRepositoryImpl) FindAll(ctx context.Context, tx *sql.Tx) []Item {
 // category
 
 type CategoryRepository	interface {
-	Create(ctx context.Context, tx *sql.Tx, data Category) 
+	Create(ctx context.Context, tx *sql.Tx, data Category) Category
+	Update(ctx context.Context, tx *sql.Tx, data *Category) (*Category, error)
 }
 
 type CategoryRepositoryImpl struct {
@@ -161,8 +162,20 @@ func NewCategoryRepository() CategoryRepository {
 	return &CategoryRepositoryImpl{}
 }
 
-func (repo *CategoryRepositoryImpl) Create(ctx context.Context, tx *sql.Tx, data Category) {
+func (repo *CategoryRepositoryImpl) Create(ctx context.Context, tx *sql.Tx, data Category) Category {
 	SQL := "INSERT INTO categories(id, name, description) VALUES($1, $2, $3)"
 	_, err := tx.ExecContext(ctx, SQL, data.Id, data.Name, data.Description) 
 	helper.PanicIfError(err)
+
+	return data
+}
+
+func (repo *CategoryRepositoryImpl) Update(ctx context.Context, tx *sql.Tx, data *Category) (*Category, error) {
+	SQL := "UPDATE categories SET description = $1 WHERE id = $2"
+	_, err := tx.ExecContext(ctx, SQL, data.Description, data.Id)
+	if err != nil {
+		return nil, errors.New("id not found")
+	}
+	
+	return data, nil
 }
