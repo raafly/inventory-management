@@ -5,14 +5,14 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	"github.com/raafly/inventory-management/internal/listing"
-	"github.com/raafly/inventory-management/config"
+	"github.com/raafly/inventory-management/pkg/config"
 )
 
 func main() {
 	DB := config.NewDB()
 	Validate := validator.New()
 
-	userRepository := listing.NewUserRepository()
+	userRepository := listing.NewUserRepository(DB)
 	userService := listing.NewUserService(userRepository, DB, Validate)
 	userHandler := listing.NewUserController(userService)
 

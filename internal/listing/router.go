@@ -7,11 +7,11 @@ import (
 func NewRouter(user UserController, item ItemController, category CategoryHandler) *httprouter.Router {
 	router := httprouter.New()
 
+	// user 
 	router.POST("/api/users/signup", user.SignUp)
 	router.POST("/api/users/signin", user.SignIn)
-	router.GET("/api/users/:username", user.FindById)
-	router.DELETE("/api/users/:username", user.Delete)
-	
+
+	// item
 	router.POST("/api/items", item.Create)
 	router.PUT("/api/items/:name", item.Update)
 	router.GET("/api/items/:name", item.FindById)
@@ -19,9 +19,10 @@ func NewRouter(user UserController, item ItemController, category CategoryHandle
 	router.DELETE("/api/items/:name", item.Delete)
 
 	// category
-
 	router.POST("/api/items/category", category.Create)
 	router.PUT("/api/category/:categoryId", category.Update)
+
+	router.PanicHandler = ErrorHandler
 
 	return router
 }

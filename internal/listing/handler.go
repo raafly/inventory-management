@@ -1,18 +1,17 @@
 package listing
 
 import (
-	"log"
 	"net/http"
 
 	"github.com/julienschmidt/httprouter"
-	"github.com/raafly/inventory-management/helper"
+	"github.com/raafly/inventory-management/pkg/config"
+	"github.com/raafly/inventory-management/pkg/helper"
 )
 
 type UserController interface{
 	SignIn(w http.ResponseWriter, r *http.Request, params httprouter.Params)
 	SignUp(w http.ResponseWriter, r *http.Request, params httprouter.Params)
-	Delete(w http.ResponseWriter, r *http.Request, params httprouter.Params)
-	FindById(w http.ResponseWriter, r *http.Request, params httprouter.Params)
+	Logout(w http.ResponseWriter, r *http.Request)
 }
 
 type UserControllerImpl struct{
@@ -29,13 +28,20 @@ func (c *UserControllerImpl) SignIn(w http.ResponseWriter, r *http.Request, para
 	userCreateRequest := UserSignIn{}
 	helper.ReadFromRequestBody(r, &userCreateRequest) 
 
-	user, token, err := c.UserService.SignIn(r.Context(), userCreateRequest)	
+	token, err := c.UserService.SignIn(userCreateRequest)	
 	helper.PanicIfError(err)
 	webResponse := WebResponse {
 		Code: 201,
 		Status: "SUCCESS",
-		Data: user,
 	}
+
+	var user User
+	session, _ := config.Store.Get(r, config.SESSION_ID)
+
+	session.Values["username"] = user.Username
+	session.Values["email"] = user.Email
+
+	session.Save(r, w)
 
 	http.SetCookie(w, &http.Cookie{
 		Name: "token",
@@ -51,44 +57,22 @@ func (c *UserControllerImpl) SignUp(w http.ResponseWriter, r *http.Request, para
 	userCreateRequest := UserSignUp{}
 	helper.ReadFromRequestBody(r, &userCreateRequest)
 
-	user := c.UserService.SignUp(r.Context(), userCreateRequest)
+	c.UserService.SignUp(userCreateRequest)
 	webResponse := WebResponse {
 		Code: 201,
 		Status: "SUCCESS",
-		Data: user,
 	}
 
 	helper.WriteToRequestBody(w, webResponse)
 }
 
-func (c *UserControllerImpl) Delete(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
-	username := params.ByName("username")
-	c.UserService.Delete(r.Context(), username)	
-
-	response := WebResponse {
-		Code: 200,
-		Status: "OK",
-	}
-
-	helper.WriteToRequestBody(w, response)
+func (c *UserControllerImpl) Logout(w http.ResponseWriter, r *http.Request) {
+	session, _ := config.Store.Get(r, config.SESSION_ID)
+	// delete session
+	session.Options.MaxAge = -1
+	session.Save(r, w)
 }
 
-func (c *UserControllerImpl) FindById(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
-	username := params.ByName("username")
-	log.Println(username)
-
-	user, err := c.UserService.FindById(r.Context(), username)
-	helper.PanicIfError(err)
-
-	response := WebResponse {
-		Code: 200,
-		Status: "OK",
-		Data: user,
-	}
-
-	helper.WriteToRequestBody(w, response)
-
-}
 
 // item 
 

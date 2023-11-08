@@ -4,28 +4,27 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/oklog/ulid/v2"
-	"github.com/raafly/inventory-management/config"
-	"github.com/raafly/inventory-management/helper"
+	"github.com/raafly/inventory-management/pkg/config"
+	"github.com/raafly/inventory-management/pkg/helper"
 	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/exp/rand"
 )
 
 type UserService interface{
-	SignUp(ctx context.Context, request UserSignUp) UserResponse
-	SignIn(ctx context.Context, request UserSignIn) (*UserResponse, string, error)
-	Delete(ctx context.Context, userName string) error
-	FindById(ctx context.Context, userName string) (*UserResponse, error)
+	SignUp(request UserSignUp) error
+	SignIn(request UserSignIn) (string, error)
 } 
 
 type UserServiceImpl struct {
 	UserRepository 	UserRepository
-	DB 				*sql.DB
-	Validate 		*validator.Validate
+	DB 	*sql.DB
+	Validate *validator.Validate
 }
 
 func NewUserService(userRepository 	UserRepository, DB *sql.DB, validate *validator.Validate) UserService {
@@ -36,54 +35,76 @@ func NewUserService(userRepository 	UserRepository, DB *sql.DB, validate *valida
 	}
 }
 
-func (s *UserServiceImpl) SignUp(ctx context.Context, request UserSignUp) UserResponse {
+func generateId() (string, error) {
+	entropy := rand.New(rand.NewSource(uint64(time.Now().UnixNano())))
+	ms := ulid.Timestamp(time.Now())
+
+	id, err := ulid.New(ms, entropy)
+	if err != nil {
+		return " ", errors.New("failed generate id")
+	}
+
+	uniqueId := id.String()
+	return uniqueId, nil
+}
+
+func hashedPassword(password string) ([]byte, error) {
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return nil, errors.New("fail hash password")
+	}
+
+	return hashedPassword, nil
+}
+
+func compareHash(dbPassword, requestPassword string) error {
+	if err := bcrypt.CompareHashAndPassword([]byte(dbPassword), []byte(requestPassword)); err != nil {
+		return errors.New("username and password not match")
+	}
+	return nil
+} 
+
+func (s *UserServiceImpl) SignUp(request UserSignUp) error {
 	err := s.Validate.Struct(request)
 	helper.PanicIfError(err)
 
-	tx, err := s.DB.Begin()
-	defer helper.CommitOrRollback(tx)
-	helper.PanicIfError(err)
+	uniqueId, err := generateId()
+	if err != nil {
+		return err
+	}
 
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(request.Password), bcrypt.DefaultCost)
-	helper.PanicIfError(err)
-
-	entropy := rand.New(rand.NewSource(uint64(time.Now().UnixNano())))
-	ms := ulid.Timestamp(time.Now())
-	id, err := ulid.New(ms, entropy)
-	uniqueId := id.String()
+	hash, err := hashedPassword(request.Password)
+	if err != nil {
+		return err
+	}
 
 	user := User{
 		Id: uniqueId,
 		Username: request.Username,
 		Email: request.Email,
-		Password: string(hashedPassword),
+		Password: string(hash),
 	}
 
-	user = s.UserRepository.SignUp(ctx, tx, user)
-	return ToUserResponse(user)
+	err = s.UserRepository.SignUp(user)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
-func (s *UserServiceImpl) SignIn(ctx context.Context, request UserSignIn) (*UserResponse, string, error) {
+func (s *UserServiceImpl) SignIn(request UserSignIn) (string, error) {
 	err := s.Validate.Struct(request)
-	helper.PanicIfError(err)
-
-	tx, err := s.DB.Begin()
-	defer helper.CommitOrRollback(tx)
-	helper.PanicIfError(err)
-
+	if err != nil {
+		return " ", fmt.Errorf("validate missing on %v", err)
+	}
+	
 	data := User{
 		Email: request.Email,
 		Password: request.Password,
 	}
 
-	user, err := s.UserRepository.SignIn(ctx, tx, data)
-
-	var salah *UserResponse
-	
-	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(data.Password))
-	if err != nil {
-		return salah, "", errors.New("username and password not match")
-	}
+	user, err := s.UserRepository.SignIn(data, s.DB)
+	compareHash(user.Password, data.Password)
 	
 	expTime := time.Now().Add(time.Minute * 1)
 	claims := &config.JWTClaims{
@@ -96,51 +117,12 @@ func (s *UserServiceImpl) SignIn(ctx context.Context, request UserSignIn) (*User
 
 	tokenAlgo := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	token, err := tokenAlgo.SignedString(config.JWT_KEY)
-	helper.PanicIfError(err)
-
-
-	response := UserResponse {
-		Id: data.Id,
-		Username: data.Username,
-		Email: data.Email,
-	}
-
-	return &response, token, nil
-}
-
-func (s *UserServiceImpl) Delete(ctx context.Context, userName string) error {
-	tx, err := s.DB.Begin()
-	defer helper.CommitOrRollback(tx)
-	helper.PanicIfError(err)	
-
-	user, err := s.UserRepository.FindById(ctx, tx, userName)
 	if err != nil {
-		return errors.New("username not found")
+		return " ", fmt.Errorf("failed create token jwt%v", err.Error())
 	}
-
-	s.UserRepository.Delete(ctx, tx, user.Username)
-	return nil
+	
+	return token, nil
 }
-
-func (s *UserServiceImpl) FindById(ctx context.Context, userName string) (*UserResponse, error) {
-	tx, err := s.DB.Begin()
-	defer helper.CommitOrRollback(tx)
-	helper.PanicIfError(err)
-
-	user, err := s.UserRepository.FindById(ctx, tx, userName)
-	if err != nil {
-		return nil, err
-	}
-
-	response := UserResponse {
-		Id: user.Id,
-		Username: user.Username,
-		Email: user.Email,
-	}
-
-	return &response, nil
-}
-
 
 // item
 
@@ -174,13 +156,7 @@ func (s *ItemServiceImpl) Create(ctx context.Context, request ItemCreate) ItemRe
 	defer helper.CommitOrRollback(tx)
 	helper.PanicIfError(err)
 
-	entropy := rand.New(rand.NewSource(uint64(time.Now().UnixNano())))
-	ms := ulid.Timestamp(time.Now())
-	id, err := ulid.New(ms, entropy)
-	uniqueId := id.String()
-
 	item := Item {
-		Id: uniqueId,
 		Name: request.Name,
 		Category: request.Category,
 		Quantity: request.Quantity,

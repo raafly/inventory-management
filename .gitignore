@@ -3,3 +3,6 @@ test /
 
 # file
 injector.go
+
+# idea
+.vscode

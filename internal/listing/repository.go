@@ -4,74 +4,44 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 
-	"github.com/raafly/inventory-management/helper"
+	"github.com/raafly/inventory-management/pkg/helper"
 )
 
 type UserRepository interface {
-	SignUp(ctx context.Context, tx *sql.Tx, user User) User
-	SignIn(ctx context.Context, tx *sql.Tx, user User) (User, error)
-	Update(ctx context.Context, tx *sql.Tx, user UserUpdate) UserUpdate
-	Delete(ctx context.Context, tx *sql.Tx, userName string)
-	FindById(ctx context.Context, tx *sql.Tx, userName string) (*User, error)
+	SignUp(user User) error
+	SignIn(user User, db*sql.DB) (*User, error)
 }
 
 type UserRepositoryImpl struct{
+	db *sql.DB
 }
 
-func NewUserRepository() UserRepository {
-	return &UserRepositoryImpl{}
-}
-
-func (r *UserRepositoryImpl) SignUp(ctx context.Context, tx *sql.Tx, user User) User {
-	SQL := "INSERT INTO users (id, username, email, password, cpassword) VALUES ($1, $2, $3, $4, $5) "
-	_, err := tx.ExecContext(ctx, SQL, user.Id, user.Username, user.Email, user.Password, user.Cpassword) 
-	helper.PanicIfError(err)
-	return user
-} 
-
-func (r *UserRepositoryImpl) SignIn(ctx context.Context, tx *sql.Tx, user User) (User, error) {
-	SQL := "SELECT id, username, email, password FROM users WHERE email = $1"
-	rows, err := tx.QueryContext(ctx, SQL, user.Email)
-	helper.PanicIfError(err)
-	defer rows.Close()
-
-	user = User{}
-	if rows.Next() {
-		err := rows.Scan(&user.Id, &user.Username, &user.Email, &user.Password)
-		helper.PanicIfError(err)
-		return user, nil
-	} else {
-		return user, errors.New("account not found")
+func NewUserRepository(db *sql.DB) UserRepository {
+	return &UserRepositoryImpl{
+		db: db,
 	}
 }
 
-func (r *UserRepositoryImpl) Update(ctx context.Context, tx *sql.Tx, user UserUpdate) UserUpdate {
-	SQL := "UPDATE FROM users SET password = $1 WHERE email = $2"
-	_, err := tx.ExecContext(ctx, SQL, user.Password, user.Email)
-	helper.PanicIfError(err)
-
-	return user
-}
-
-func (r *UserRepositoryImpl) Delete(ctx context.Context, tx *sql.Tx, userName string) {
-	SQL := "DELETE FROM users WHERE username = $1"
-	tx.ExecContext(ctx, SQL, userName)
-}
-
-func (r *UserRepositoryImpl) FindById(ctx context.Context, tx *sql.Tx, userName string) (*User, error) {
-	var user User
-	SQL := "SELECT usermame, email, password FROM users WHERE username = $1"
-	rows, err := tx.QueryContext(ctx, SQL, userName)
+func (r *UserRepositoryImpl) SignUp(user User) error {
+	SQL := "INSERT INTO users(id, username, email, password) VALUES ($1, $2, $3, $4)"
+	_, err := r.db.Exec(SQL, user.Id, user.Username, user.Email, user.Password) 
 	if err != nil {
-		return nil, errors.New("account not found")
+		return fmt.Errorf("FAILED EXEC QUERY %v", err.Error())
 	}
-	defer rows.Close()
 
-	if rows.Next() {
-		err := rows.Scan(&user.Username, &user.Email, &user.Password)
-		helper.PanicIfError(err)
+	return nil
+}
+
+func (r *UserRepositoryImpl) SignIn(user User, db*sql.DB) (*User, error) {
+	SQL := "SELECT id, username, email, password FROM users WHERE email = $1"
+
+	if err := r.db.QueryRow(SQL, user.Email).Scan(&user.Id, &user.Username, &user.Email, &user.Password); err != nil {
+		fmt.Errorf("Failed to exec query %v", err.Error())
+		return &user, nil
 	}
+
 	return &user, nil
 }
 
@@ -86,7 +56,6 @@ type ItemRepository interface {
 	FindAll(ctx context.Context, tx *sql.Tx) []Item
 }
 
-
 type ItemRepositoryImpl struct {
 }
 
@@ -95,8 +64,8 @@ func NewItemRepository() ItemRepository {
 }
 
 func (r *ItemRepositoryImpl) Create(ctx context.Context, tx *sql.Tx, item Item) Item {
-	SQL := "INSERT INTO items(id, name, category,quantity) VALUES($1, $2, $3, $4)"
-	_, err := tx.ExecContext(ctx, SQL, item.Id, item.Name, item.Category, item.Quantity)
+	SQL := "INSERT INTO items(name, category,quantity) VALUES($1, $2, $3)"
+	_, err := tx.ExecContext(ctx, SQL, item.Name, item.Category, item.Quantity)
 	helper.PanicIfError(err)
 
 	return item
@@ -124,7 +93,7 @@ func (r *ItemRepositoryImpl) FindById(ctx context.Context, tx *sql.Tx, itemName 
 
 	item := Item{}
 	if rows.Next() {
-		err := rows.Scan(&item.Id, &item.Name, &item.Description, &item.Category, &item.Quantity, &item.In, &item.Created_at)
+		err := rows.Scan(&item.Id, &item.Name, &item.Description, &item.Category, &item.Created_at)
 		helper.PanicIfError(err)
 		return item, nil
 	} else {
@@ -140,7 +109,7 @@ func (r *ItemRepositoryImpl) FindAll(ctx context.Context, tx *sql.Tx) []Item {
 	var item []Item
 	for rows.Next() {
 		items := Item{}
-		err := rows.Scan(&items.Id, &items.Name, &items.Description, &items.Category, &items.Quantity, &items.In, &items.Created_at)
+		err := rows.Scan(&items.Id, &items.Name, &items.Description, &items.Category, &items.Quantity, &items.Created_at)
 		helper.PanicIfError(err)
 		item = append(item, items)
 	}
