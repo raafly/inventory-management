@@ -1,6 +1,6 @@
 package listing
 
-
+/* 
 func ToItemResponse(item Item) ItemResponse {
 	return ItemResponse{
 		Id: item.Id,
@@ -18,3 +18,5 @@ func ToItemResponses(item []Item) []ItemResponse {
 
 	return itemResponse
 }
+
+*/

@@ -56,26 +56,21 @@ type ItemCreate struct {
 }
 
 type ItemUpdate struct {
-	Name		string		`json:"name" validate:"required"`
-	Quantity	int			`json:"quantity" validate:"required"`
-}
-
-type ItemResponses struct {
-	Id			string			`json:"id"`
-	Name		string			`json:"name"`
-	Description	string			`json:"description"`
-	Category	int				`json:"category"`
-	Quantity	int				`json:"quantity"`	
-	In 			time.Time		`json:"in"`
-	Out			time.Time		`json:"out"`
-	Created_at	time.Time		`json:"created_at"`
+	Id			string			`json:"id" validate:"required"`
+	Name		string		`json:"name"`
+	Description	string		`json:"description"`
+	Status		bool		`json:"status"`
+	Quantity	int			`json:"quantity"`
 }
 
 type ItemResponse struct {
-	Id			string			`json:"id"`
+	Id			int			`json:"id"`
 	Name		string			`json:"name"`
+	Description	string			`json:"description"`
 	Category	string			`json:"category"`
 	Quantity	int				`json:"quantity"`
+	Status		bool			`json:"status"`
+	Created_at	time.Time		`json:"createdAt"`
 }
 
 // category 
@@ -105,4 +100,5 @@ type WebResponse struct {
 	Status		string
 	Data		interface{}
 }
+
 

@@ -16,7 +16,7 @@ func main() {
 	userService := listing.NewUserService(userRepository, DB, Validate)
 	userHandler := listing.NewUserController(userService)
 
-	itemRepository := listing.NewItemRepository()
+	itemRepository := listing.NewItemRepository(DB)
 	itemService := listing.NewItemService(itemRepository, DB, Validate)
 	itemHandler := listing.NewItemController(itemService)
 

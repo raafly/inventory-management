@@ -13,10 +13,14 @@ func NewRouter(user UserController, item ItemController, category CategoryHandle
 
 	// item
 	router.POST("/api/items", item.Create)
-	router.PUT("/api/items/:name", item.Update)
-	router.GET("/api/items/:name", item.FindById)
+	/* 
+	router.PUT("/api/items/update/status/:itemId", item.UpdateStatus)
+	router.PUT("/api/items/update/description/:itemId", item.UpadteDescription)
+	router.PUT("/api/items/update/quantity:itemId", item.UpdateQuantity)
+	router.GET("/api/items/:itemId", item.FindById)
 	router.GET("/api/items/", item.FindAll)
-	router.DELETE("/api/items/:name", item.Delete)
+	router.DELETE("/api/items/:itemId", item.Delete)
+	*/
 
 	// category
 	router.POST("/api/items/category", category.Create)

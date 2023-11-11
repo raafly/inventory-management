@@ -9,6 +9,7 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
 	"github.com/oklog/ulid/v2"
 	"github.com/raafly/inventory-management/pkg/config"
 	"github.com/raafly/inventory-management/pkg/helper"
@@ -103,7 +104,7 @@ func (s *UserServiceImpl) SignIn(request UserSignIn) (string, error) {
 		Password: request.Password,
 	}
 
-	user, err := s.UserRepository.SignIn(data, s.DB)
+	user, err := s.UserRepository.SignIn(data)
 	compareHash(user.Password, data.Password)
 	
 	expTime := time.Now().Add(time.Minute * 1)
@@ -127,11 +128,15 @@ func (s *UserServiceImpl) SignIn(request UserSignIn) (string, error) {
 // item
 
 type ItemService interface {
-	Create(ctx context.Context, request ItemCreate) ItemResponse
-	Update(ctx context.Context, requst ItemUpdate) ItemResponse
-	Delete(ctx context.Context, itemName string)
-	FindById(ctx context.Context, itemName string ) ItemResponse
-	FindAll(ctx context.Context) []ItemResponse
+	Create(request ItemCreate) error
+	/*
+	UpdateStatus(requst ItemUpdate) error
+	UpdateQuantity(request ItemUpdate) 
+	UpadteDescription(request ItemUpdate)
+	Delete(itemId int) error
+	FindById(itemId int) (*ItemResponse, error)
+	FindAll() []ItemResponse
+	*/ 
 }
 
 type ItemServiceImpl struct {
@@ -148,71 +153,99 @@ func NewItemService(itemRepository ItemRepository, DB *sql.DB, validate *validat
 	}
 }
 
-func (s *ItemServiceImpl) Create(ctx context.Context, request ItemCreate) ItemResponse {
-	err := s.Validate.Struct(request)
-	helper.PanicIfError(err)
+func (s ItemServiceImpl) Create(request ItemCreate) error {
+	if err := s.Validate.Struct(request); err != nil {
+		return fmt.Errorf("validate error %v", err.Error())
+	}
 
-	tx, err := s.DB.Begin()
-	defer helper.CommitOrRollback(tx)
-	helper.PanicIfError(err)
+	id := uuid.New()
+	idPharse := id.String()
 
 	item := Item {
+		Id: idPharse,
 		Name: request.Name,
 		Category: request.Category,
 		Quantity: request.Quantity,
 	}
 
-	item = s.ItemRepository.Create(ctx, tx, item)
-	return ToItemResponse(item)
+	if err := s.ItemRepository.Create(item); err != nil {
+		return err
+	}
+	return nil
 }
+/*
 
-func (s *ItemServiceImpl) Update(ctx context.Context, request ItemUpdate) ItemResponse {
-	err := s.Validate.Struct(request)
-	helper.PanicIfError(err)
-
-	tx, err := s.DB.Begin()
-	defer helper.CommitOrRollback(tx)
-	helper.PanicIfError(err)	
-
-	item := Item {
-		Name: request.Name,
-		Quantity: request.Quantity,
+func (s ItemServiceImpl) UpdateStatus(request ItemUpdate) error {
+	if err := s.Validate.Struct(request); err != nil {
+		return fmt.Errorf("validate error %v", err.Error())
 	}
 
-	item = s.ItemRepository.Update(ctx, tx, item)
-	return ToItemResponse(item)
+	item := Item {
+		Id: request.Id,
+		Status: request.Status,
+	}
+
+	s.ItemRepository.UpdateStatus(item.Id, item.Status)
+	return nil
 }
 
-func (s *ItemServiceImpl) Delete(ctx context.Context, itemName string) {
-	tx, err := s.DB.Begin()
-	defer helper.CommitOrRollback(tx)
-	helper.PanicIfError(err)	
-
-	item, err := s.ItemRepository.FindById(ctx, tx, itemName)
-	helper.PanicIfError(err)
-
-	s.ItemRepository.Delete(ctx, tx, item.Name)
+func (s ItemServiceImpl) UpadteDescription(request ItemUpdate) {
+	if item, err := s.ItemRepository.FindById(request.Id); err != nil {
+		fmt.Errorf("id item not found %v", err.Error())
+	} else {
+		s.ItemRepository.UpadteDescription(item.Id, item.Description)
+	}	
 }
 
-func (s *ItemServiceImpl) FindById(ctx context.Context, itemName string ) ItemResponse {
-	tx, err := s.DB.Begin()
-	defer helper.CommitOrRollback(tx)
-	helper.PanicIfError(err)	
+func (s ItemServiceImpl) UpdateQuantity(request ItemUpdate) {
+	if item, err := s.ItemRepository.FindById(request.Id); err != nil {
+		fmt.Errorf("id item not found %v", err.Error())
+	} else {
+		s.ItemRepository.UpdateQuantity(item.Id, item.Quantity)
+	}	
+}
 
-	item, err := s.ItemRepository.FindById(ctx, tx, itemName)
-	helper.PanicIfError(err)
+func (s ItemServiceImpl) Delete(itemId int) error {
+	if item, err := s.ItemRepository.FindById(itemId); err != nil {
+		return fmt.Errorf("item id not found %v", err.Error())
+	} else {
+		s.ItemRepository.Delete(item.Id)
+		return nil
+	}
+}
+
+func (s ItemServiceImpl) FindById(itemId int) (*ItemResponse, error) {
+	var itemRes ItemResponse
+
+	if item, err := s.ItemRepository.FindById(itemId); err != nil {
+		return &itemRes, fmt.Errorf("id item not found %v", err.Error()) 
+	} else {
+		itemRes = ItemResponse{
+			Id: item.Id,
+			Name: item.Name,
+			Description: item.Description,
+			Quantity: item.Quantity,
+			Status: item.Status,
+			Category: item.Category,
+			Created_at: item.Created_at,
+		}
+
+		return &itemRes, nil
+	}
+}
+
+
+func (s ItemServiceImpl) FindAll() []ItemResponse {
+	items := s.ItemRepository.FindAll()
 	
-	return ToItemResponse(item)
+	var itemResponse []ItemResponse
+	for _, items := range items {
+		itemResponse = append(itemResponse, ToItemResponse(items))
+	}
+	
+	return itemResponse
 }
-
-func (s *ItemServiceImpl) FindAll(ctx context.Context) []ItemResponse {
-	tx, err := s.DB.Begin()
-	defer helper.CommitOrRollback(tx)
-	helper.PanicIfError(err)	
-
-	items := s.ItemRepository.FindAll(ctx, tx)
-	return ToItemResponses(items)
-}
+*/
 
 // category
 
