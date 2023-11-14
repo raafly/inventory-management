@@ -143,9 +143,17 @@ func (c ItemControllerImpl) UpdateStatus(w http.ResponseWriter, r *http.Request,
 }
 
 func (c ItemControllerImpl) UpdateQuantity(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
+	Id := params.ByName("itemId")
+	newId, err := strconv.Atoi(Id) 
+	if err != nil {
+		panic(err)
+	}
+	
 	itemCreateRequest := ItemUpdate{}
 	helper.ReadFromRequestBody(r, &itemCreateRequest)
-
+	
+	itemCreateRequest.Id = newId
+	
 	c.ItemService.UpdateQuantity(itemCreateRequest)
 	webResponse := WebResponse {
 		Code: 200,

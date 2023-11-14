@@ -81,7 +81,7 @@ func (r ItemRepositoryImpl) UpdateStatus(id int, status bool) {
 }
 
 func (r ItemRepositoryImpl) UpdateQuantity(id, quatity int) {
-	SQL := "UPDATE items SET quantity = quantity - $1 WHERE name = $2"
+	SQL := "UPDATE items SET quantity = quantity - $1 WHERE id = $2"
 	if _, err := r.db.Exec(SQL, quatity, id); err != nil {
 		fmt.Printf("FAILED to exec query %v", err.Error())
 	}

@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/go-playground/validator/v10"
@@ -208,11 +209,22 @@ func (s ItemServiceImpl) UpdateStatus(request ItemUpdate) error {
 }
 
 func (s ItemServiceImpl) UpdateQuantity(request ItemUpdate) {
-	if item, err := s.ItemRepository.FindById(request.Id); err != nil {
-		fmt.Printf("id item not found %v", err.Error())
-	} else {
-		s.ItemRepository.UpdateQuantity(item.Id, item.Quantity)
-	}	
+	if err := s.Validate.Struct(request); err != nil {
+		fmt.Printf("validate error %v", err.Error())
+	}
+
+	data, err := s.ItemRepository.FindById(request.Id)
+	if err  != nil {
+		panic(NewNotFoundError(err.Error()))
+	}
+
+	data = &Item {
+		Id: data.Id,
+		Quantity: request.Quantity,
+	}
+	log.Print(data)
+
+	s.ItemRepository.UpdateQuantity(data.Id, data.Quantity)
 }
 
 func (s ItemServiceImpl) Delete(itemId int) error {
