@@ -5,7 +5,17 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	"github.com/raafly/inventory-management/pkg/helper"
+
 )
+// not found error
+
+type NotFoundError struct {
+	Error	string
+}
+
+func NewNotFoundError(error string) NotFoundError {
+	return NotFoundError{Error: error}
+}
 
 func ErrorHandler(writer http.ResponseWriter, request *http.Request, err interface{}) {
 	if notFoundError(writer, request, err) {

@@ -133,7 +133,7 @@ type ItemService interface {
 	UpdateQuantity(request ItemUpdate) 
 	Delete(itemId int) error
 	FindById(itemId int) (*ItemResponse, error)
-	// FindAll() []ItemResponse
+	FindAll() []ItemResponse
 	// UpadteDescription(request ItemUpdate)
 }
 
@@ -193,32 +193,44 @@ func (s ItemServiceImpl) UpdateStatus(request ItemUpdate) error {
 		return fmt.Errorf("validate error %v", err.Error())
 	}
 
-	item := Item {
-		Id: request.Id,
+	data, err := s.ItemRepository.FindById(request.Id)
+	if err  != nil {
+		panic(NewNotFoundError(err.Error()))
+	}
+
+	data = &Item {
+		Id: data.Id,
 		Status: request.Status,
 	}
 
-	s.ItemRepository.UpdateStatus(item.Id, item.Status)
+	s.ItemRepository.UpdateStatus(data.Id, data.Status)
 	return nil
 }
 
 func (s ItemServiceImpl) UpdateQuantity(request ItemUpdate) {
 	if item, err := s.ItemRepository.FindById(request.Id); err != nil {
-		fmt.Errorf("id item not found %v", err.Error())
+		fmt.Printf("id item not found %v", err.Error())
 	} else {
 		s.ItemRepository.UpdateQuantity(item.Id, item.Quantity)
 	}	
 }
 
 func (s ItemServiceImpl) Delete(itemId int) error {
-	// if item, err := s.ItemRepository.FindById(itemId); err != nil {
-	// 	return fmt.Errorf("item id not found %v", err.Error())
-	// } else {
-		// 	return nil
-		// }
 	s.ItemRepository.Delete(itemId)
 	return nil
 }
+
+func (s ItemServiceImpl) FindAll() []ItemResponse {
+	items := s.ItemRepository.FindAll()
+	
+	var itemResponse []ItemResponse
+	for _, item := range items {
+		itemResponse = append(itemResponse, ItemResponse(item))
+	}
+	
+	return itemResponse
+}
+
 /*
 
 
@@ -230,17 +242,6 @@ func (s ItemServiceImpl) UpadteDescription(request ItemUpdate) {
 	}	
 }
 
-
-func (s ItemServiceImpl) FindAll() []ItemResponse {
-	items := s.ItemRepository.FindAll()
-	
-	var itemResponse []ItemResponse
-	for _, items := range items {
-		itemResponse = append(itemResponse, ToItemResponse(items))
-	}
-	
-	return itemResponse
-}
 */
 
 // category

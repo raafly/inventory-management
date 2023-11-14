@@ -6,6 +6,7 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/raafly/inventory-management/internal/listing"
 	"github.com/raafly/inventory-management/pkg/config"
+	"github.com/raafly/inventory-management/pkg/route"
 )
 
 func main() {
@@ -24,7 +25,7 @@ func main() {
 	categoryService := listing.NewCategoryService(categoryRepository, DB, Validate)
 	categoryHandler := listing.NewCategoryHandler(categoryService)
 
-	router := listing.NewRouter(userHandler, itemHandler, categoryHandler)
+	router := route.NewRouter(userHandler, itemHandler, categoryHandler)
 
 	server := http.Server {
 		Addr: "localhost:3000",

@@ -51,7 +51,7 @@ type ItemRepository interface {
 	UpdateQuantity(id, quatity int)
 	Delete(itemId int)
 	FindById(itemId int) (*Item, error)
-	// FindAll() []Item
+	FindAll() []Item
 	// UpadteDescription(id int, desc string)
 }
 
@@ -76,7 +76,7 @@ func (r ItemRepositoryImpl) Create(item Item) error {
 func (r ItemRepositoryImpl) UpdateStatus(id int, status bool) {
 	SQL := "UPDATE items SET status = $1 WHERE id = $2"
 	if _, err := r.db.Exec(SQL, status, id); err != nil {
-		fmt.Errorf("FAILED to exec query %v", err.Error())
+		fmt.Printf("FAILED to exec query %v", err.Error())
 	}
 }
 
@@ -90,14 +90,14 @@ func (r ItemRepositoryImpl) UpdateQuantity(id, quatity int) {
 func (r ItemRepositoryImpl) UpadteDescription(id int, desc string) {
 	SQL := "UPDATE items SET description = $1 WHERE name = $2"
 	if _, err := r.db.Exec(SQL, desc, id); err != nil {
-		fmt.Errorf("FAILED to exec query %v", err.Error())
+		fmt.Printf("FAILED to exec query %v", err.Error())
 	}
 }
 
 func (r ItemRepositoryImpl) Delete(itemId int) {
 	SQL := "DELETE FROM items WHERE id = $1"
 	if _, err := r.db.Exec(SQL, itemId); err != nil {
-		fmt.Errorf("FAILED to exec query %v", err.Error())
+		fmt.Printf("FAILED to exec query %v", err.Error())
 	}
 }
 
@@ -123,8 +123,10 @@ func (r ItemRepositoryImpl) FindById(itemId int) (*Item, error) {
 
 func (r ItemRepositoryImpl) FindAll() []Item {
 	SQL := "SELECT id, name, description, category, quantity, status, created_at FROM items"
-	rows, _ := r.db.Query(SQL)
-
+	rows, err := r.db.Query(SQL)
+	if err != nil {
+		fmt.Printf("failed exec query %v", err)
+	}
 	defer rows.Close()
 
 	var item []Item

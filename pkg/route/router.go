@@ -1,10 +1,11 @@
-package listing
+package route
 
 import (
 	"github.com/julienschmidt/httprouter"
+	"github.com/raafly/inventory-management/internal/listing"
 )
 
-func NewRouter(user UserController, item ItemController, category CategoryHandler) *httprouter.Router {
+func NewRouter(user listing.UserController, item listing.ItemController, category listing.CategoryHandler) *httprouter.Router {
 	router := httprouter.New()
 
 	// user 
@@ -14,12 +15,12 @@ func NewRouter(user UserController, item ItemController, category CategoryHandle
 
 	// item
 	router.POST("/api/items", item.Create)
-	router.PUT("/api/items/update/status/:itemId", item.UpdateStatus)
+	router.PUT("/api/items/status/:itemId", item.UpdateStatus)
 	router.PUT("/api/items/update/quantity:itemId", item.UpdateQuantity)
 	router.DELETE("/api/items/:itemId", item.Delete)
 	router.GET("/api/items/:itemId", item.FindById)
-	/* 
 	router.GET("/api/items/", item.FindAll)
+	/* 
 	router.PUT("/api/items/update/description/:itemId", item.UpadteDescription)
 	*/
 
@@ -27,7 +28,7 @@ func NewRouter(user UserController, item ItemController, category CategoryHandle
 	router.POST("/api/items/category", category.Create)
 	router.PUT("/api/category/:categoryId", category.Update)
 
-	router.PanicHandler = ErrorHandler
+	router.PanicHandler = listing.ErrorHandler
 
 	return router
 }

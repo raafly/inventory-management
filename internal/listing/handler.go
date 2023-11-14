@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
-	_ "strconv"
 
 	"github.com/julienschmidt/httprouter"
 	"github.com/raafly/inventory-management/pkg/config"
@@ -94,9 +93,9 @@ type ItemController interface {
 	FindById(w http.ResponseWriter, r *http.Request, params httprouter.Params)
 	UpdateQuantity(w http.ResponseWriter, r *http.Request, param httprouter.Params)
 	Delete(w http.ResponseWriter, r *http.Request, params httprouter.Params)
+	FindAll(w http.ResponseWriter, r *http.Request, params httprouter.Params)
 	/*
 	UpadteDescription(w http.ResponseWriter, r *http.Request, param httprouter.Params)
-	FindAll(w http.ResponseWriter, r *http.Request, params httprouter.Params)
 	*/ 
 }
 
@@ -123,12 +122,21 @@ func (c ItemControllerImpl) Create(w http.ResponseWriter, r *http.Request, param
 }
 
 func (c ItemControllerImpl) UpdateStatus(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
+	Id := params.ByName("itemId")
+	newId, err := strconv.Atoi(Id) 
+	if err != nil {
+		panic(err)
+	}
+	
 	itemCreateRequest := ItemUpdate{}
 	helper.ReadFromRequestBody(r, &itemCreateRequest)
+	
+	itemCreateRequest.Id = newId
 
 	c.ItemService.UpdateStatus(itemCreateRequest)
 	webResponse := WebResponse {
 		Code: 201,
+		Data: itemCreateRequest.Id,
 	}
 
 	helper.WriteToRequestBody(w, webResponse)
@@ -150,7 +158,7 @@ func (c ItemControllerImpl) Delete(w http.ResponseWriter, r *http.Request, param
 	Id := params.ByName("itemId")
 	newId, err := strconv.Atoi(Id) 
 	if err != nil {
-		fmt.Errorf("msg %v", err.Error())
+		panic(err)
 	}
 	
 	c.ItemService.Delete(newId)
@@ -181,6 +189,16 @@ func (c ItemControllerImpl) FindById(w http.ResponseWriter, r *http.Request, par
 	helper.WriteToRequestBody(w, webResponse)
 }
 
+func (c ItemControllerImpl) FindAll(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
+	items := c.ItemService.FindAll()
+	webResponse := WebResponse {
+		Code: 201,
+		Data: items,
+	}
+
+	helper.WriteToRequestBody(w, webResponse)
+}
+
 /*
 
 func (c ItemControllerImpl) UpadteDescription(w http.ResponseWriter, r *http.Request, param httprouter.Params) {
@@ -190,16 +208,6 @@ func (c ItemControllerImpl) UpadteDescription(w http.ResponseWriter, r *http.Req
 	c.ItemService.UpadteDescription(itemCreateRequest)
 	webResponse := WebResponse {
 		Code: 200,
-	}
-
-	helper.WriteToRequestBody(w, webResponse)
-}
-
-func (c ItemControllerImpl) FindAll(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
-	items := c.ItemService.FindAll()
-	webResponse := WebResponse {
-		Code: 201,
-		Data: items,
 	}
 
 	helper.WriteToRequestBody(w, webResponse)
