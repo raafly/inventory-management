@@ -49,10 +49,10 @@ type ItemRepository interface {
 	Create(item Item) error
 	UpdateStatus(id int, status bool)
 	UpdateQuantity(id, quatity int)
+	UpadteDescription(id int, desc string)
 	Delete(itemId int)
 	FindById(itemId int) (*Item, error)
 	FindAll() []Item
-	// UpadteDescription(id int, desc string)
 }
 
 type ItemRepositoryImpl struct {
@@ -88,7 +88,7 @@ func (r ItemRepositoryImpl) UpdateQuantity(id, quatity int) {
 }
 
 func (r ItemRepositoryImpl) UpadteDescription(id int, desc string) {
-	SQL := "UPDATE items SET description = $1 WHERE name = $2"
+	SQL := "UPDATE items SET description = $1 WHERE id = $2"
 	if _, err := r.db.Exec(SQL, desc, id); err != nil {
 		fmt.Printf("FAILED to exec query %v", err.Error())
 	}

@@ -135,7 +135,7 @@ type ItemService interface {
 	Delete(itemId int) error
 	FindById(itemId int) (*ItemResponse, error)
 	FindAll() []ItemResponse
-	// UpadteDescription(request ItemUpdate)
+	UpadteDescription(request ItemUpdate)
 }
 
 type ItemServiceImpl struct {
@@ -243,18 +243,24 @@ func (s ItemServiceImpl) FindAll() []ItemResponse {
 	return itemResponse
 }
 
-/*
-
-
 func (s ItemServiceImpl) UpadteDescription(request ItemUpdate) {
-	if item, err := s.ItemRepository.FindById(request.Id); err != nil {
-		fmt.Errorf("id item not found %v", err.Error())
-	} else {
-		s.ItemRepository.UpadteDescription(item.Id, item.Description)
-	}	
-}
+	if err := s.Validate.Struct(request); err != nil {
+		fmt.Printf("validate error %v", err.Error())
+	}
 
-*/
+	data, err := s.ItemRepository.FindById(request.Id)
+	if err  != nil {
+		panic(NewNotFoundError(err.Error()))
+	}
+
+	data = &Item {
+		Id: data.Id,
+		Description: request.Description,
+	}
+	log.Print(data)
+
+	s.ItemRepository.UpadteDescription(data.Id, data.Description)
+}
 
 // category
 

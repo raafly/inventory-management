@@ -94,9 +94,7 @@ type ItemController interface {
 	UpdateQuantity(w http.ResponseWriter, r *http.Request, param httprouter.Params)
 	Delete(w http.ResponseWriter, r *http.Request, params httprouter.Params)
 	FindAll(w http.ResponseWriter, r *http.Request, params httprouter.Params)
-	/*
-	UpadteDescription(w http.ResponseWriter, r *http.Request, param httprouter.Params)
-	*/ 
+	UpadteDescription(w http.ResponseWriter, r *http.Request, params httprouter.Params)
 }
 
 type ItemControllerImpl struct {
@@ -207,11 +205,17 @@ func (c ItemControllerImpl) FindAll(w http.ResponseWriter, r *http.Request, para
 	helper.WriteToRequestBody(w, webResponse)
 }
 
-/*
-
-func (c ItemControllerImpl) UpadteDescription(w http.ResponseWriter, r *http.Request, param httprouter.Params) {
+func (c ItemControllerImpl) UpadteDescription(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
+	Id := params.ByName("itemId")
+	newId, err := strconv.Atoi(Id) 
+	if err != nil {
+		panic(err)
+	}
+	
 	itemCreateRequest := ItemUpdate{}
 	helper.ReadFromRequestBody(r, &itemCreateRequest)
+	
+	itemCreateRequest.Id = newId
 
 	c.ItemService.UpadteDescription(itemCreateRequest)
 	webResponse := WebResponse {
@@ -220,8 +224,6 @@ func (c ItemControllerImpl) UpadteDescription(w http.ResponseWriter, r *http.Req
 
 	helper.WriteToRequestBody(w, webResponse)
 }
-
-*/
 
 // category
 

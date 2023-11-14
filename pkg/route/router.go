@@ -20,9 +20,7 @@ func NewRouter(user listing.UserController, item listing.ItemController, categor
 	router.DELETE("/api/items/:itemId", item.Delete)
 	router.GET("/api/items/:itemId", item.FindById)
 	router.GET("/api/items/", item.FindAll)
-	/* 
-	router.PUT("/api/items/update/description/:itemId", item.UpadteDescription)
-	*/
+	router.PUT("/api/items/description/:itemId", item.UpadteDescription)
 
 	// category
 	router.POST("/api/items/category", category.Create)
