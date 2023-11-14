@@ -21,8 +21,8 @@ func main() {
 	itemService := listing.NewItemService(itemRepository, DB, Validate)
 	itemHandler := listing.NewItemController(itemService)
 
-	categoryRepository := listing.NewCategoryRepository()
-	categoryService := listing.NewCategoryService(categoryRepository, DB, Validate)
+	categoryRepository := listing.NewCategoryRepository(DB)
+	categoryService := listing.NewCategoryService(categoryRepository, Validate)
 	categoryHandler := listing.NewCategoryHandler(categoryService)
 
 	router := route.NewRouter(userHandler, itemHandler, categoryHandler)

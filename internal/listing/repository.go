@@ -1,12 +1,9 @@
 package listing
 
 import (
-	"context"
 	"database/sql"
 	"errors"
 	"fmt"
-
-	"github.com/raafly/inventory-management/pkg/helper"
 )
 
 type UserRepository interface {
@@ -143,31 +140,29 @@ func (r ItemRepositoryImpl) FindAll() []Item {
 // category
 
 type CategoryRepository interface {
-	Create(ctx context.Context, tx *sql.Tx, data Category) Category
-	Update(ctx context.Context, tx *sql.Tx, data *Category) (*Category, error)
+	Create(data Category)
+	Update(data Category) error
 }
 
 type CategoryRepositoryImpl struct {
+	db *sql.DB
 }
 
-func NewCategoryRepository() CategoryRepository {
-	return &CategoryRepositoryImpl{}
+func NewCategoryRepository(Db *sql.DB) CategoryRepository {
+	return &CategoryRepositoryImpl{db: Db}
 }
 
-func (repo *CategoryRepositoryImpl) Create(ctx context.Context, tx *sql.Tx, data Category) Category {
+func (r CategoryRepositoryImpl) Create(data Category) {
 	SQL := "INSERT INTO categories(id, name, description) VALUES($1, $2, $3)"
-	_, err := tx.ExecContext(ctx, SQL, data.Id, data.Name, data.Description)
-	helper.PanicIfError(err)
-
-	return data
+	if _, err := r.db.Exec(SQL, data.Id, data.Name, data.Description); err != nil {
+		fmt.Printf("failed exec query: %v", err)
+	}
 }
 
-func (repo *CategoryRepositoryImpl) Update(ctx context.Context, tx *sql.Tx, data *Category) (*Category, error) {
+func (r CategoryRepositoryImpl) Update(data Category) (error) {
 	SQL := "UPDATE categories SET description = $1 WHERE id = $2"
-	_, err := tx.ExecContext(ctx, SQL, data.Description, data.Id)
-	if err != nil {
-		return nil, errors.New("id not found")
+	if _, err := r.db.Exec(SQL, data.Description, data.Id); err != nil {
+		return errors.New("id not found")
 	}
-
-	return data, nil
+	return nil
 }

@@ -1,7 +1,6 @@
 package listing
 
 import (
-	"context"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -265,31 +264,26 @@ func (s ItemServiceImpl) UpadteDescription(request ItemUpdate) {
 // category
 
 type CategoryService interface {
-	Save(ctx context.Context, request CategoryCreate) error
-	Update(ctx context.Context, request CategoryUpdate) (*Category, error)
+	Save(request CategoryCreate) 
+	Update(request CategoryUpdate)
 }
 
 type CategoryServiceImpl struct {
-	CategoryRepository 	CategoryRepository
-	DB 					*sql.DB
+	Port 	CategoryRepository
 	Validate 			*validator.Validate
 }
 
-func NewCategoryService(categoryRepository CategoryRepository, DB *sql.DB, validate *validator.Validate) CategoryService {
+func NewCategoryService(port CategoryRepository, validate *validator.Validate) CategoryService {
 	return &CategoryServiceImpl {
-		CategoryRepository: categoryRepository,
-		DB: DB,
+		Port: port,
 		Validate: validate,
 	}
 }
 
-func (s *CategoryServiceImpl) Save(ctx context.Context, request CategoryCreate) error {
-	err := s.Validate.Struct(request)
-	helper.PanicIfError(err)
-
-	tx, err := s.DB.Begin()
-	defer helper.CommitOrRollback(tx)
-	helper.PanicIfError(err)
+func (s CategoryServiceImpl) Save(request CategoryCreate) {
+	if err := s.Validate.Struct(request); err != nil {
+		panic(err)
+	}
 
 	data := Category {
 		Id: request.Id,
@@ -297,28 +291,20 @@ func (s *CategoryServiceImpl) Save(ctx context.Context, request CategoryCreate) 
 		Description: request.Description,
 	}
 
-	s.CategoryRepository.Create(ctx, tx, data)
-
-	return nil
+	s.Port.Create(data)
 }
 
-func (s *CategoryServiceImpl) Update(ctx context.Context, request CategoryUpdate) (*Category, error) {
-	err := s.Validate.Struct(request)
-	helper.PanicIfError(err)
+func (s CategoryServiceImpl) Update(request CategoryUpdate) {
+	if err := s.Validate.Struct(request); err != nil {
+		panic(err)
+	}
 
-	tx, err := s.DB.Begin()
-	defer helper.CommitOrRollback(tx)
-	helper.PanicIfError(err)
-
-	get := Category {
-		Id:  request.Id,
+	data := Category {
+		Id: request.Id,
 		Description: request.Description,
 	}
 
-	data, err := s.CategoryRepository.Update(ctx, tx, &get)
-	if err != nil {
-		return nil, err
+	if err := s.Port.Update(data); err != nil {
+		panic(NewNotFoundError(err.Error()))
 	}
-
-	return data, nil
 }

@@ -23,7 +23,7 @@ func NewRouter(user listing.UserController, item listing.ItemController, categor
 	router.PUT("/api/items/description/:itemId", item.UpadteDescription)
 
 	// category
-	router.POST("/api/items/category", category.Create)
+	router.POST("/api/category", category.Create)
 	router.PUT("/api/category/:categoryId", category.Update)
 
 	router.PanicHandler = listing.ErrorHandler

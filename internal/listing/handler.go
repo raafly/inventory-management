@@ -233,23 +233,20 @@ type CategoryHandler interface {
 }
 
 type CategoryHandlerImpl struct {
-	CategoryService		CategoryService
+	Port CategoryService
 }
 
-func NewCategoryHandler(categoryService CategoryService) CategoryHandler {
+func NewCategoryHandler(port CategoryService) CategoryHandler {
 	return &CategoryHandlerImpl{
-		CategoryService: categoryService,
+		Port: port,
 	}
 }
 
-
-func (h *CategoryHandlerImpl) Create(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
+func (h CategoryHandlerImpl) Create(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
 	request := CategoryCreate{}
 	helper.ReadFromRequestBody(r, &request)
 
-	err := h.CategoryService.Save(r.Context(), request)
-	helper.PanicIfError(err)
-
+	h.Port.Save(request)
 	response := WebResponse {
 		Code: 201,
 	}
@@ -257,19 +254,17 @@ func (h *CategoryHandlerImpl) Create(w http.ResponseWriter, r *http.Request, par
 	helper.WriteToRequestBody(w, response)
 }
 
-func (h *CategoryHandlerImpl) Update(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
+func (h CategoryHandlerImpl) Update(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
 	request := CategoryUpdate{}
 	helper.ReadFromRequestBody(r, &request)
 
 	id := params.ByName("categoryId")
 	request.Id = id
 
-	data, err := h.CategoryService.Update(r.Context(), request)
-	helper.PanicIfError(err)
+	h.Port.Update(request)
 
 	response := WebResponse {
 		Code: 201,
-		Data: data,
 	}
 
 	helper.WriteToRequestBody(w, response)
