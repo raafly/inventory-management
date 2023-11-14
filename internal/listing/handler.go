@@ -1,10 +1,7 @@
 package listing
 
 import (
-	"errors"
-	_ "errors"
 	"fmt"
-	_ "fmt"
 	"net/http"
 	"strconv"
 	_ "strconv"
@@ -38,7 +35,6 @@ func (c UserControllerImpl) SignIn(w http.ResponseWriter, r *http.Request, param
 	helper.PanicIfError(err)
 	webResponse := WebResponse {
 		Code: 201,
-		Status: "SUCCESS",
 	}
 
 	var user User
@@ -69,7 +65,6 @@ func (c UserControllerImpl) SignUp(w http.ResponseWriter, r *http.Request, param
 	}
 	webResponse := WebResponse {
 		Code: 201,
-		Status: "SUCCESS",
 	}
 
 	helper.WriteToRequestBody(w, webResponse)
@@ -122,7 +117,6 @@ func (c ItemControllerImpl) Create(w http.ResponseWriter, r *http.Request, param
 	c.ItemService.Create(itemCreateRequest)
 	webResponse := WebResponse {
 		Code: 201,
-		Status: "SUCCESS",
 	}
 
 	helper.WriteToRequestBody(w, webResponse)
@@ -135,7 +129,6 @@ func (c ItemControllerImpl) UpdateStatus(w http.ResponseWriter, r *http.Request,
 	c.ItemService.UpdateStatus(itemCreateRequest)
 	webResponse := WebResponse {
 		Code: 201,
-		Status: "SUCCESS",
 	}
 
 	helper.WriteToRequestBody(w, webResponse)
@@ -148,7 +141,6 @@ func (c ItemControllerImpl) UpdateQuantity(w http.ResponseWriter, r *http.Reques
 	c.ItemService.UpdateQuantity(itemCreateRequest)
 	webResponse := WebResponse {
 		Code: 200,
-		Status: "SUCCESS",
 	}
 
 	helper.WriteToRequestBody(w, webResponse)
@@ -164,7 +156,6 @@ func (c ItemControllerImpl) Delete(w http.ResponseWriter, r *http.Request, param
 	c.ItemService.Delete(newId)
 	webResponse := WebResponse {
 		Code: 201,
-		Status: "SUCCESS",
 	}
 
 	helper.WriteToRequestBody(w, webResponse)
@@ -174,17 +165,16 @@ func (c ItemControllerImpl) FindById(w http.ResponseWriter, r *http.Request, par
 	Id := params.ByName("itemId")
 	newId, err := strconv.Atoi(Id) 
 	if err != nil {
-		fmt.Errorf("msg %v", err.Error())
+		recover()
 	}
 
 	item, err := c.ItemService.FindById(newId)
 	if err != nil {
-		errors.New("id not found")
+		panic(NewNotFoundError(err.Error()))
 	}
 
 	webResponse := WebResponse {
 		Code: 201,
-		Status: "SUCCESS",
 		Data: item,
 	}
 
@@ -200,7 +190,6 @@ func (c ItemControllerImpl) UpadteDescription(w http.ResponseWriter, r *http.Req
 	c.ItemService.UpadteDescription(itemCreateRequest)
 	webResponse := WebResponse {
 		Code: 200,
-		Status: "SUCCESS",
 	}
 
 	helper.WriteToRequestBody(w, webResponse)
@@ -210,7 +199,6 @@ func (c ItemControllerImpl) FindAll(w http.ResponseWriter, r *http.Request, para
 	items := c.ItemService.FindAll()
 	webResponse := WebResponse {
 		Code: 201,
-		Status: "SUCCESS",
 		Data: items,
 	}
 
@@ -246,7 +234,6 @@ func (h *CategoryHandlerImpl) Create(w http.ResponseWriter, r *http.Request, par
 
 	response := WebResponse {
 		Code: 201,
-		Status: "CREATED",
 	}
 
 	helper.WriteToRequestBody(w, response)
@@ -264,10 +251,8 @@ func (h *CategoryHandlerImpl) Update(w http.ResponseWriter, r *http.Request, par
 
 	response := WebResponse {
 		Code: 201,
-		Status: "OK",
 		Data: data,
 	}
 
 	helper.WriteToRequestBody(w, response)
-
 }	

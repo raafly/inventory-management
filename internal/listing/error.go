@@ -8,6 +8,9 @@ import (
 )
 
 func ErrorHandler(writer http.ResponseWriter, request *http.Request, err interface{}) {
+	if notFoundError(writer, request, err) {
+		return
+	}
 
 	if validationErrors(writer, request, err) {
 		return
@@ -16,16 +19,34 @@ func ErrorHandler(writer http.ResponseWriter, request *http.Request, err interfa
 	internalServerError(writer, request, err)
 }
 
+func notFoundError(w http.ResponseWriter, r *http.Request, err interface{}) bool {
+	exception, ok:= err.(NotFoundError)	
+	if ok {
+		w.Header().Add("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+
+		webResponse := ErrorResponse{
+			Code: http.StatusBadRequest,
+			Message: exception.Error,
+		}
+
+		helper.WriteToRequestBody(w, webResponse)
+		
+		return true
+	} else {
+		return false
+	}
+}
+
 func validationErrors(writer http.ResponseWriter, request *http.Request, err interface{}) bool {
 	exception, ok := err.(validator.ValidationErrors)
 	if ok {
 		writer.Header().Set("Content-Type", "application/json")
 		writer.WriteHeader(http.StatusBadRequest)
 
-		webResponse := WebResponse{
-			Code:   http.StatusBadRequest,
-			Status: "BAD REQUEST",
-			Data:   exception.Error(),
+		webResponse := ErrorResponse{
+			Code: http.StatusBadRequest,
+			Message: exception.Error(),
 		}
 
 		helper.WriteToRequestBody(writer, webResponse)
@@ -39,10 +60,9 @@ func internalServerError(writer http.ResponseWriter, request *http.Request, err 
 	writer.Header().Set("Content-Type", "application/json")
 	writer.WriteHeader(http.StatusInternalServerError)
 
-	webResponse := WebResponse{
+	webResponse := ErrorResponse {
 		Code:   http.StatusInternalServerError,
-		Status: "INTERNAL SERVER ERROR",
-		Data:   err,
+		Message: "INTERNAL SERVER ERROR",
 	}
 
 	helper.WriteToRequestBody(writer, webResponse)
