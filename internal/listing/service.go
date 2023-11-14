@@ -16,22 +16,22 @@ import (
 	"golang.org/x/exp/rand"
 )
 
-type UserService interface{
+type UserService interface {
 	SignUp(request UserSignUp) error
 	SignIn(request UserSignIn) (string, error)
-} 
-
-type UserServiceImpl struct {
-	UserRepository 	UserRepository
-	DB 	*sql.DB
-	Validate *validator.Validate
 }
 
-func NewUserService(userRepository 	UserRepository, DB *sql.DB, validate *validator.Validate) UserService {
+type UserServiceImpl struct {
+	UserRepository UserRepository
+	DB             *sql.DB
+	Validate       *validator.Validate
+}
+
+func NewUserService(userRepository UserRepository, DB *sql.DB, validate *validator.Validate) UserService {
 	return &UserServiceImpl{
 		UserRepository: userRepository,
-		DB: DB,
-		Validate: validate,
+		DB:             DB,
+		Validate:       validate,
 	}
 }
 
@@ -62,7 +62,7 @@ func compareHash(dbPassword, requestPassword string) error {
 		return errors.New("username and password not match")
 	}
 	return nil
-} 
+}
 
 func (s *UserServiceImpl) SignUp(request UserSignUp) error {
 	err := s.Validate.Struct(request)
@@ -79,9 +79,9 @@ func (s *UserServiceImpl) SignUp(request UserSignUp) error {
 	}
 
 	user := User{
-		Id: uniqueId,
+		Id:       uniqueId,
 		Username: request.Username,
-		Email: request.Email,
+		Email:    request.Email,
 		Password: string(hash),
 	}
 
@@ -97,21 +97,21 @@ func (s *UserServiceImpl) SignIn(request UserSignIn) (string, error) {
 	if err != nil {
 		return " ", fmt.Errorf("validate missing on %v", err)
 	}
-	
+
 	data := User{
-		Email: request.Email,
+		Email:    request.Email,
 		Password: request.Password,
 	}
 
 	user, err := s.UserRepository.SignIn(data)
 	compareHash(user.Password, data.Password)
-	
+
 	expTime := time.Now().Add(time.Hour * 1)
 	claims := &config.JWTClaims{
 		Username: user.Username,
-		Email: user.Email,
+		Email:    user.Email,
 		RegisteredClaims: jwt.RegisteredClaims{
-			Issuer: user.Username,
+			Issuer:    user.Username,
 			ExpiresAt: jwt.NewNumericDate(expTime),
 		},
 	}
@@ -121,7 +121,7 @@ func (s *UserServiceImpl) SignIn(request UserSignIn) (string, error) {
 	if err != nil {
 		return " ", fmt.Errorf("failed create token jwt%v", err.Error())
 	}
-	
+
 	return token, nil
 }
 
@@ -130,7 +130,7 @@ func (s *UserServiceImpl) SignIn(request UserSignIn) (string, error) {
 type ItemService interface {
 	Create(request ItemCreate) error
 	UpdateStatus(requst ItemUpdate) error
-	UpdateQuantity(request ItemUpdate) 
+	UpdateQuantity(request ItemUpdate)
 	Delete(itemId int) error
 	FindById(itemId int) (*ItemResponse, error)
 	FindAll() []ItemResponse
@@ -138,16 +138,16 @@ type ItemService interface {
 }
 
 type ItemServiceImpl struct {
-	ItemRepository		ItemRepository
-	DB 					*sql.DB
-	Validate			*validator.Validate
+	ItemRepository ItemRepository
+	DB             *sql.DB
+	Validate       *validator.Validate
 }
 
 func NewItemService(itemRepository ItemRepository, DB *sql.DB, validate *validator.Validate) ItemService {
 	return &ItemServiceImpl{
 		ItemRepository: itemRepository,
-		DB: DB,
-		Validate: validate,
+		DB:             DB,
+		Validate:       validate,
 	}
 }
 
@@ -156,8 +156,8 @@ func (s ItemServiceImpl) Create(request ItemCreate) error {
 		return fmt.Errorf("validate error %v", err.Error())
 	}
 
-	item := Item {
-		Name: request.Name,
+	item := Item{
+		Name:     request.Name,
 		Category: request.Category,
 		Quantity: request.Quantity,
 	}
@@ -172,16 +172,16 @@ func (s ItemServiceImpl) FindById(itemId int) (*ItemResponse, error) {
 	var itemRes ItemResponse
 
 	if item, err := s.ItemRepository.FindById(itemId); err != nil {
-		return &itemRes, fmt.Errorf("id item not found %v", err.Error()) 
+		return &itemRes, fmt.Errorf("id item not found %v", err.Error())
 	} else {
 		itemRes = ItemResponse{
-			Id: item.Id,
-			Name: item.Name,
+			Id:          item.Id,
+			Name:        item.Name,
 			Description: item.Description,
-			Quantity: item.Quantity,
-			Status: item.Status,
-			Category: item.Category,
-			Created_at: item.Created_at,
+			Quantity:    item.Quantity,
+			Status:      item.Status,
+			Category:    item.Category,
+			Created_at:  item.Created_at,
 		}
 
 		return &itemRes, nil
@@ -194,12 +194,12 @@ func (s ItemServiceImpl) UpdateStatus(request ItemUpdate) error {
 	}
 
 	data, err := s.ItemRepository.FindById(request.Id)
-	if err  != nil {
+	if err != nil {
 		panic(NewNotFoundError(err.Error()))
 	}
 
-	data = &Item {
-		Id: data.Id,
+	data = &Item{
+		Id:     data.Id,
 		Status: request.Status,
 	}
 
@@ -213,12 +213,12 @@ func (s ItemServiceImpl) UpdateQuantity(request ItemUpdate) {
 	}
 
 	data, err := s.ItemRepository.FindById(request.Id)
-	if err  != nil {
+	if err != nil {
 		panic(NewNotFoundError(err.Error()))
 	}
 
-	data = &Item {
-		Id: data.Id,
+	data = &Item{
+		Id:       data.Id,
 		Quantity: request.Quantity,
 	}
 	log.Print(data)
@@ -233,12 +233,12 @@ func (s ItemServiceImpl) Delete(itemId int) error {
 
 func (s ItemServiceImpl) FindAll() []ItemResponse {
 	items := s.ItemRepository.FindAll()
-	
+
 	var itemResponse []ItemResponse
 	for _, item := range items {
 		itemResponse = append(itemResponse, ItemResponse(item))
 	}
-	
+
 	return itemResponse
 }
 
@@ -248,12 +248,12 @@ func (s ItemServiceImpl) UpadteDescription(request ItemUpdate) {
 	}
 
 	data, err := s.ItemRepository.FindById(request.Id)
-	if err  != nil {
+	if err != nil {
 		panic(NewNotFoundError(err.Error()))
 	}
 
-	data = &Item {
-		Id: data.Id,
+	data = &Item{
+		Id:          data.Id,
 		Description: request.Description,
 	}
 	log.Print(data)
@@ -264,18 +264,19 @@ func (s ItemServiceImpl) UpadteDescription(request ItemUpdate) {
 // category
 
 type CategoryService interface {
-	Save(request CategoryCreate) 
+	Save(request CategoryCreate)
 	Update(request CategoryUpdate)
+	GetAllCategory() []CategoryResponse
 }
 
 type CategoryServiceImpl struct {
-	Port 	CategoryRepository
-	Validate 			*validator.Validate
+	Port     CategoryRepository
+	Validate *validator.Validate
 }
 
 func NewCategoryService(port CategoryRepository, validate *validator.Validate) CategoryService {
-	return &CategoryServiceImpl {
-		Port: port,
+	return &CategoryServiceImpl{
+		Port:     port,
 		Validate: validate,
 	}
 }
@@ -285,9 +286,9 @@ func (s CategoryServiceImpl) Save(request CategoryCreate) {
 		panic(err)
 	}
 
-	data := Category {
-		Id: request.Id,
-		Name: request.Name,
+	data := Category{
+		Id:          request.Id,
+		Name:        request.Name,
 		Description: request.Description,
 	}
 
@@ -299,12 +300,23 @@ func (s CategoryServiceImpl) Update(request CategoryUpdate) {
 		panic(err)
 	}
 
-	data := Category {
-		Id: request.Id,
+	data := Category{
+		Id:          request.Id,
 		Description: request.Description,
 	}
 
 	if err := s.Port.Update(data); err != nil {
 		panic(NewNotFoundError(err.Error()))
 	}
+}
+
+func (s CategoryServiceImpl) GetAllCategory() []CategoryResponse {
+	categories := s.Port.GetAllCategory()
+
+	var categoryResponse []CategoryResponse
+	for _, category := range categories {
+		categoryResponse = append(categoryResponse, CategoryResponse(category))
+	}
+
+	return categoryResponse
 }

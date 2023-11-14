@@ -230,6 +230,7 @@ func (c ItemControllerImpl) UpadteDescription(w http.ResponseWriter, r *http.Req
 type CategoryHandler interface {
 	Create(w http.ResponseWriter, r *http.Request, params httprouter.Params)
 	Update(w http.ResponseWriter, r *http.Request, params httprouter.Params)
+	GetAllCategory(w http.ResponseWriter, r *http.Request, params httprouter.Params)
 }
 
 type CategoryHandlerImpl struct {
@@ -269,3 +270,12 @@ func (h CategoryHandlerImpl) Update(w http.ResponseWriter, r *http.Request, para
 
 	helper.WriteToRequestBody(w, response)
 }	
+
+func (h CategoryHandlerImpl) GetAllCategory(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
+	categories := h.Port.GetAllCategory()
+	webResponse := WebResponse {
+		Code: 200,
+		Data: categories,
+	}
+	helper.WriteToRequestBody(w, webResponse)
+}

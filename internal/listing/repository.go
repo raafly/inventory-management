@@ -142,6 +142,7 @@ func (r ItemRepositoryImpl) FindAll() []Item {
 type CategoryRepository interface {
 	Create(data Category)
 	Update(data Category) error
+	GetAllCategory() []Category
 }
 
 type CategoryRepositoryImpl struct {
@@ -165,4 +166,24 @@ func (r CategoryRepositoryImpl) Update(data Category) (error) {
 		return errors.New("id not found")
 	}
 	return nil
+}
+
+func (r CategoryRepositoryImpl)	GetAllCategory() []Category {
+	sql := "select id, name, description from categories"
+	rows, err := r.db.Query(sql)
+	if err != nil {
+		fmt.Printf("failed exec query %v", err)
+	}
+	defer rows.Close()
+
+	var categories []Category
+	if rows.Next() {
+		var category Category
+		err := rows.Scan(&category.Id, &category.Name, &category.Description)
+		if err != nil {
+			fmt.Printf("failed pharsing %v", err)
+		}
+		categories = append(categories, category)
+	}
+	return categories
 }
