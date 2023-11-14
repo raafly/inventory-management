@@ -1,9 +1,12 @@
 package listing
 
 import (
+	"errors"
 	_ "errors"
+	"fmt"
 	_ "fmt"
 	"net/http"
+	"strconv"
 	_ "strconv"
 
 	"github.com/julienschmidt/httprouter"
@@ -14,7 +17,7 @@ import (
 type UserController interface{
 	SignIn(w http.ResponseWriter, r *http.Request, params httprouter.Params)
 	SignUp(w http.ResponseWriter, r *http.Request, params httprouter.Params)
-	Logout(w http.ResponseWriter, r *http.Request)
+	Logout(w http.ResponseWriter, r *http.Request, params httprouter.Params)
 }
 
 type UserControllerImpl struct{
@@ -60,34 +63,44 @@ func (c UserControllerImpl) SignUp(w http.ResponseWriter, r *http.Request, param
 	userCreateRequest := UserSignUp{}
 	helper.ReadFromRequestBody(r, &userCreateRequest)
 
-	c.UserService.SignUp(userCreateRequest)
+	err := c.UserService.SignUp(userCreateRequest)
+	if err != nil {
+		fmt.Printf("%v", err)
+	}
 	webResponse := WebResponse {
 		Code: 201,
 		Status: "SUCCESS",
-		Data: nil,
 	}
 
 	helper.WriteToRequestBody(w, webResponse)
 }
 
-func (c UserControllerImpl) Logout(w http.ResponseWriter, r *http.Request) {
-	session, _ := config.Store.Get(r, config.SESSION_ID)
-	// delete session
-	session.Options.MaxAge = -1
-	session.Save(r, w)
-}
+func (c UserControllerImpl) Logout(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
+	session, err := config.Store.Get(r, config.SESSION_ID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
+	session.Options.MaxAge = -1
+
+	err = session.Save(r, w)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
 
 // item 
 
 type ItemController interface {
 	Create(w http.ResponseWriter, r *http.Request, params httprouter.Params)
-	/*
 	UpdateStatus(w http.ResponseWriter, r *http.Request, params httprouter.Params)
-	UpdateQuantity(w http.ResponseWriter, r *http.Request, param httprouter.Params)
-	UpadteDescription(w http.ResponseWriter, r *http.Request, param httprouter.Params)
-	Delete(w http.ResponseWriter, r *http.Request, params httprouter.Params)
 	FindById(w http.ResponseWriter, r *http.Request, params httprouter.Params)
+	UpdateQuantity(w http.ResponseWriter, r *http.Request, param httprouter.Params)
+	Delete(w http.ResponseWriter, r *http.Request, params httprouter.Params)
+	/*
+	UpadteDescription(w http.ResponseWriter, r *http.Request, param httprouter.Params)
 	FindAll(w http.ResponseWriter, r *http.Request, params httprouter.Params)
 	*/ 
 }
@@ -115,8 +128,6 @@ func (c ItemControllerImpl) Create(w http.ResponseWriter, r *http.Request, param
 	helper.WriteToRequestBody(w, webResponse)
 }
 
-/*
-
 func (c ItemControllerImpl) UpdateStatus(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
 	itemCreateRequest := ItemUpdate{}
 	helper.ReadFromRequestBody(r, &itemCreateRequest)
@@ -142,20 +153,6 @@ func (c ItemControllerImpl) UpdateQuantity(w http.ResponseWriter, r *http.Reques
 
 	helper.WriteToRequestBody(w, webResponse)
 }
-
-func (c ItemControllerImpl) UpadteDescription(w http.ResponseWriter, r *http.Request, param httprouter.Params) {
-	itemCreateRequest := ItemUpdate{}
-	helper.ReadFromRequestBody(r, &itemCreateRequest)
-
-	c.ItemService.UpadteDescription(itemCreateRequest)
-	webResponse := WebResponse {
-		Code: 200,
-		Status: "SUCCESS",
-	}
-
-	helper.WriteToRequestBody(w, webResponse)
-}
-
 
 func (c ItemControllerImpl) Delete(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
 	Id := params.ByName("itemId")
@@ -189,6 +186,21 @@ func (c ItemControllerImpl) FindById(w http.ResponseWriter, r *http.Request, par
 		Code: 201,
 		Status: "SUCCESS",
 		Data: item,
+	}
+
+	helper.WriteToRequestBody(w, webResponse)
+}
+
+/*
+
+func (c ItemControllerImpl) UpadteDescription(w http.ResponseWriter, r *http.Request, param httprouter.Params) {
+	itemCreateRequest := ItemUpdate{}
+	helper.ReadFromRequestBody(r, &itemCreateRequest)
+
+	c.ItemService.UpadteDescription(itemCreateRequest)
+	webResponse := WebResponse {
+		Code: 200,
+		Status: "SUCCESS",
 	}
 
 	helper.WriteToRequestBody(w, webResponse)

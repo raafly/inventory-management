@@ -1,31 +1,37 @@
-package main_test
+package test
 
-import "testing"
+import (
+	"fmt"
+	"testing"
 
-type ItemDumpy struct {
-	Name	int
+	"github.com/raafly/inventory-management/pkg/config"
+)
+
+type User struct {
+	Id string
+	Username string
+	Email	string
+	Password string
 }
 
-func (r ItemDumpy) CreateWithoutPointr(updateName int) {
-	r.Name = updateName
+var db = config.NewDB()
+
+func SignUp(user User) error {
+	SQL := "INSERT INTO users(id, username, email, password) VALUES ($1, $2, $3, $4)"
+	if _, err := db.Exec(SQL, user.Id, user.Username, user.Email, user.Password); err != nil {
+		return fmt.Errorf("failed: %v", err)
+	}
+
+	return nil
 }
 
-func (r *ItemDumpy) CreateWithPointer(updateName int) {
-	r.Name = updateName
-}
+func TestInsertDB(t *testing.T) {
+	data := User {
+		Id: "nerwnewcxnxwf",
+		Username: "newcyfegyu",
+		Email: "uncfrexnucrqem",
+		Password: "huxheumheux",
+	}
 
-func BenchmarkPoin(b *testing.B) {
-	b.Run("tanpa_pointer", func(b *testing.B) {
-		person := ItemDumpy{}
-		for i := 0; i < b.N; i++ {
-			person.CreateWithoutPointr(i)
-		}
-	})
-
-	b.Run("dengan_pointer", func(b *testing.B) {
-		person := ItemDumpy{}
-		for i := 0; i < b.N; i++ {
-			person.CreateWithPointer(i)
-		}
-	})
+	SignUp(data)
 }

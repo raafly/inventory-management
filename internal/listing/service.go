@@ -9,7 +9,6 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/google/uuid"
 	"github.com/oklog/ulid/v2"
 	"github.com/raafly/inventory-management/pkg/config"
 	"github.com/raafly/inventory-management/pkg/helper"
@@ -107,9 +106,10 @@ func (s *UserServiceImpl) SignIn(request UserSignIn) (string, error) {
 	user, err := s.UserRepository.SignIn(data)
 	compareHash(user.Password, data.Password)
 	
-	expTime := time.Now().Add(time.Minute * 1)
+	expTime := time.Now().Add(time.Hour * 1)
 	claims := &config.JWTClaims{
 		Username: user.Username,
+		Email: user.Email,
 		RegisteredClaims: jwt.RegisteredClaims{
 			Issuer: user.Username,
 			ExpiresAt: jwt.NewNumericDate(expTime),
@@ -129,14 +129,12 @@ func (s *UserServiceImpl) SignIn(request UserSignIn) (string, error) {
 
 type ItemService interface {
 	Create(request ItemCreate) error
-	/*
 	UpdateStatus(requst ItemUpdate) error
 	UpdateQuantity(request ItemUpdate) 
-	UpadteDescription(request ItemUpdate)
 	Delete(itemId int) error
 	FindById(itemId int) (*ItemResponse, error)
-	FindAll() []ItemResponse
-	*/ 
+	// FindAll() []ItemResponse
+	// UpadteDescription(request ItemUpdate)
 }
 
 type ItemServiceImpl struct {
@@ -158,11 +156,7 @@ func (s ItemServiceImpl) Create(request ItemCreate) error {
 		return fmt.Errorf("validate error %v", err.Error())
 	}
 
-	id := uuid.New()
-	idPharse := id.String()
-
 	item := Item {
-		Id: idPharse,
 		Name: request.Name,
 		Category: request.Category,
 		Quantity: request.Quantity,
@@ -172,46 +166,6 @@ func (s ItemServiceImpl) Create(request ItemCreate) error {
 		return err
 	}
 	return nil
-}
-/*
-
-func (s ItemServiceImpl) UpdateStatus(request ItemUpdate) error {
-	if err := s.Validate.Struct(request); err != nil {
-		return fmt.Errorf("validate error %v", err.Error())
-	}
-
-	item := Item {
-		Id: request.Id,
-		Status: request.Status,
-	}
-
-	s.ItemRepository.UpdateStatus(item.Id, item.Status)
-	return nil
-}
-
-func (s ItemServiceImpl) UpadteDescription(request ItemUpdate) {
-	if item, err := s.ItemRepository.FindById(request.Id); err != nil {
-		fmt.Errorf("id item not found %v", err.Error())
-	} else {
-		s.ItemRepository.UpadteDescription(item.Id, item.Description)
-	}	
-}
-
-func (s ItemServiceImpl) UpdateQuantity(request ItemUpdate) {
-	if item, err := s.ItemRepository.FindById(request.Id); err != nil {
-		fmt.Errorf("id item not found %v", err.Error())
-	} else {
-		s.ItemRepository.UpdateQuantity(item.Id, item.Quantity)
-	}	
-}
-
-func (s ItemServiceImpl) Delete(itemId int) error {
-	if item, err := s.ItemRepository.FindById(itemId); err != nil {
-		return fmt.Errorf("item id not found %v", err.Error())
-	} else {
-		s.ItemRepository.Delete(item.Id)
-		return nil
-	}
 }
 
 func (s ItemServiceImpl) FindById(itemId int) (*ItemResponse, error) {
@@ -232,6 +186,48 @@ func (s ItemServiceImpl) FindById(itemId int) (*ItemResponse, error) {
 
 		return &itemRes, nil
 	}
+}
+
+func (s ItemServiceImpl) UpdateStatus(request ItemUpdate) error {
+	if err := s.Validate.Struct(request); err != nil {
+		return fmt.Errorf("validate error %v", err.Error())
+	}
+
+	item := Item {
+		Id: request.Id,
+		Status: request.Status,
+	}
+
+	s.ItemRepository.UpdateStatus(item.Id, item.Status)
+	return nil
+}
+
+func (s ItemServiceImpl) UpdateQuantity(request ItemUpdate) {
+	if item, err := s.ItemRepository.FindById(request.Id); err != nil {
+		fmt.Errorf("id item not found %v", err.Error())
+	} else {
+		s.ItemRepository.UpdateQuantity(item.Id, item.Quantity)
+	}	
+}
+
+func (s ItemServiceImpl) Delete(itemId int) error {
+	// if item, err := s.ItemRepository.FindById(itemId); err != nil {
+	// 	return fmt.Errorf("item id not found %v", err.Error())
+	// } else {
+		// 	return nil
+		// }
+	s.ItemRepository.Delete(itemId)
+	return nil
+}
+/*
+
+
+func (s ItemServiceImpl) UpadteDescription(request ItemUpdate) {
+	if item, err := s.ItemRepository.FindById(request.Id); err != nil {
+		fmt.Errorf("id item not found %v", err.Error())
+	} else {
+		s.ItemRepository.UpadteDescription(item.Id, item.Description)
+	}	
 }
 
 

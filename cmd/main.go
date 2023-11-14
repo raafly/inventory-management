@@ -13,7 +13,7 @@ func main() {
 	Validate := validator.New()
 
 	userRepository := listing.NewUserRepository(DB)
-	userService := listing.NewUserService(userRepository, DB, Validate)
+	userService := listing.NewUserService(userRepository, DB,Validate)
 	userHandler := listing.NewUserController(userService)
 
 	itemRepository := listing.NewItemRepository(DB)

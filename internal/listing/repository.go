@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+
 	"github.com/raafly/inventory-management/pkg/helper"
 )
 
@@ -13,7 +14,7 @@ type UserRepository interface {
 	SignIn(user User) (*User, error)
 }
 
-type UserRepositoryImpl struct{
+type UserRepositoryImpl struct {
 	db *sql.DB
 }
 
@@ -25,7 +26,7 @@ func NewUserRepository(db *sql.DB) UserRepository {
 
 func (r UserRepositoryImpl) SignUp(user User) error {
 	SQL := "INSERT INTO users(id, username, email, password) VALUES ($1, $2, $3, $4)"
-	_, err := r.db.Exec(SQL, user.Id, user.Username, user.Email, user.Password) 
+	_, err := r.db.Exec(SQL, user.Id, user.Username, user.Email, user.Password)
 	if err != nil {
 		return fmt.Errorf("FAILED EXEC QUERY %v", err.Error())
 	}
@@ -42,17 +43,16 @@ func (r UserRepositoryImpl) SignIn(user User) (*User, error) {
 	return &user, nil
 }
 
-
 // item
 
 type ItemRepository interface {
 	Create(item Item) error
 	UpdateStatus(id int, status bool)
 	UpdateQuantity(id, quatity int)
-	UpadteDescription(id int, desc string)
 	Delete(itemId int)
 	FindById(itemId int) (*Item, error)
-	FindAll() []Item
+	// FindAll() []Item
+	// UpadteDescription(id int, desc string)
 }
 
 type ItemRepositoryImpl struct {
@@ -66,10 +66,9 @@ func NewItemRepository(DB *sql.DB) ItemRepository {
 }
 
 func (r ItemRepositoryImpl) Create(item Item) error {
-	SQL := "INSERT INTO items(id, name, category, quantity) VALUES($1, $2, $3, $4)"
-	_, err := r.db.Exec(SQL, item.Id, item.Name, item.Category, item.Quantity);
-	if 	err != nil {
-		return err
+	SQL := "INSERT INTO items(name, category, quantity) VALUES($1, $2, $3)"
+	if _, err := r.db.Exec(SQL, item.Name, item.Category, item.Quantity); err != nil {
+		return fmt.Errorf("failed exec query: %v", err)
 	}
 	return nil
 }
@@ -77,11 +76,11 @@ func (r ItemRepositoryImpl) Create(item Item) error {
 func (r ItemRepositoryImpl) UpdateStatus(id int, status bool) {
 	SQL := "UPDATE items SET status = $1 WHERE id = $2"
 	if _, err := r.db.Exec(SQL, status, id); err != nil {
-		fmt.Printf("FAILED to exec query %v", err.Error())
+		fmt.Errorf("FAILED to exec query %v", err.Error())
 	}
 }
 
-func (r ItemRepositoryImpl)	UpdateQuantity(id, quatity int) {
+func (r ItemRepositoryImpl) UpdateQuantity(id, quatity int) {
 	SQL := "UPDATE items SET quantity = quantity - $1 WHERE name = $2"
 	if _, err := r.db.Exec(SQL, quatity, id); err != nil {
 		fmt.Printf("FAILED to exec query %v", err.Error())
@@ -98,7 +97,7 @@ func (r ItemRepositoryImpl) UpadteDescription(id int, desc string) {
 func (r ItemRepositoryImpl) Delete(itemId int) {
 	SQL := "DELETE FROM items WHERE id = $1"
 	if _, err := r.db.Exec(SQL, itemId); err != nil {
-		fmt.Errorf("FAILED to exec query %v", err.Error())	
+		fmt.Errorf("FAILED to exec query %v", err.Error())
 	}
 }
 
@@ -106,18 +105,20 @@ func (r ItemRepositoryImpl) FindById(itemId int) (*Item, error) {
 	SQL := "SELECT id, name, description, category, quantity, status, created_at FROM items WHERE id = $1"
 	rows, err := r.db.Query(SQL, itemId)
 	if err != nil {
-		return nil, fmt.Errorf("item not found %v", err.Error())
+		return nil, errors.New("item id not found")
 	}
 	defer rows.Close()
 
-	item := Item{}
+	var items Item
 	if rows.Next() {
-		if err = rows.Scan(&item.Id, &item.Name, &item.Description, &item.Category, &item.Status, &item.Created_at); err != nil {
-			return nil, fmt.Errorf("FAILED pharsing %v", err)
+		err := rows.Scan(&items.Id, &items.Name, &items.Description, &items.Category, &items.Quantity, &items.Status, &items.Created_at)
+		if err != nil {
+			return nil, fmt.Errorf("failed exec query: %v", err)
 		}
-		// return &item, nil
-	} 
-	return &item, nil
+		return &items, nil
+	} else {
+		return nil, errors.New("item nof found")
+	}
 }
 
 func (r ItemRepositoryImpl) FindAll() []Item {
@@ -130,7 +131,7 @@ func (r ItemRepositoryImpl) FindAll() []Item {
 	for rows.Next() {
 		items := Item{}
 		if err := rows.Scan(&items.Id, &items.Name, &items.Description, &items.Category, &items.Quantity, &items.Status, &items.Created_at); err != nil {
-			fmt.Printf("failed pharsing %v", err)			
+			fmt.Printf("failed pharsing %v", err)
 		}
 		item = append(item, items)
 	}
@@ -139,7 +140,7 @@ func (r ItemRepositoryImpl) FindAll() []Item {
 
 // category
 
-type CategoryRepository	interface {
+type CategoryRepository interface {
 	Create(ctx context.Context, tx *sql.Tx, data Category) Category
 	Update(ctx context.Context, tx *sql.Tx, data *Category) (*Category, error)
 }
@@ -153,7 +154,7 @@ func NewCategoryRepository() CategoryRepository {
 
 func (repo *CategoryRepositoryImpl) Create(ctx context.Context, tx *sql.Tx, data Category) Category {
 	SQL := "INSERT INTO categories(id, name, description) VALUES($1, $2, $3)"
-	_, err := tx.ExecContext(ctx, SQL, data.Id, data.Name, data.Description) 
+	_, err := tx.ExecContext(ctx, SQL, data.Id, data.Name, data.Description)
 	helper.PanicIfError(err)
 
 	return data
@@ -165,6 +166,6 @@ func (repo *CategoryRepositoryImpl) Update(ctx context.Context, tx *sql.Tx, data
 	if err != nil {
 		return nil, errors.New("id not found")
 	}
-	
+
 	return data, nil
 }

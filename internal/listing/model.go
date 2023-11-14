@@ -17,7 +17,7 @@ type UserSignUp struct {
 	Username	string	`json:"username" validate:"required"`
 	Email		string	`json:"email" validate:"required,email"`
 	Password	string	`json:"password" validate:"required,min=8"`
-	Cpassword	string	`json:"confirm_password" validate:"required,min=8,eqfield=Password"`
+	Cpassword	string	`json:"confirmPassword" validate:"required,min=8,eqfield=Password"`
 }
 
 type UserSignIn struct {
@@ -40,7 +40,7 @@ type UserResponse struct {
 // item
 
 type Item struct {
-	Id				string
+	Id				int
 	Name			string
 	Description		string
 	Category		string
@@ -56,7 +56,7 @@ type ItemCreate struct {
 }
 
 type ItemUpdate struct {
-	Id			string			`json:"id" validate:"required"`
+	Id			int			`json:"id" validate:"required"`
 	Name		string		`json:"name"`
 	Description	string		`json:"description"`
 	Status		bool		`json:"status"`
