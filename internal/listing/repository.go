@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"log"
 )
 
 type UserRepository interface {
@@ -44,7 +45,7 @@ func (r UserRepositoryImpl) SignIn(user User) (*User, error) {
 
 type ItemRepository interface {
 	Create(item Item) error
-	UpdateStatus(id int, status bool)
+	UpdateStatus(id int, status bool, quantity int)
 	UpdateQuantity(id, quatity int)
 	UpadteDescription(id int, desc string)
 	Delete(itemId int)
@@ -70,10 +71,16 @@ func (r ItemRepositoryImpl) Create(item Item) error {
 	return nil
 }
 
-func (r ItemRepositoryImpl) UpdateStatus(id int, status bool) {
+func (r ItemRepositoryImpl) UpdateStatus(id int, status bool, quantity int) {
 	SQL := "UPDATE items SET status = $1 WHERE id = $2"
 	if _, err := r.db.Exec(SQL, status, id); err != nil {
 		fmt.Printf("FAILED to exec query %v", err.Error())
+	}
+	log.Print("state 1")
+
+	sql := "insert into history(item_id, action, quantity) values($1, $2, $3)"
+	if _, err := r.db.Exec(sql, id, status, quantity); err != nil {
+		log.Printf("failed to exec query: %v", err)
 	}
 }
 
@@ -186,4 +193,53 @@ func (r CategoryRepositoryImpl)	GetAllCategory() []Category {
 		categories = append(categories, category)
 	}
 	return categories
+}
+
+type HistoryRepository interface {
+	findById(itemId int) (*History, error)
+	findAll() []History
+}
+
+type historyRepository struct {
+	db *sql.DB
+}
+
+func NewHistoryRepository(Db *sql.DB) HistoryRepository {
+	return &historyRepository{db: Db}
+}
+
+func (r historyRepository) findById(itemId int) (*History, error) {
+	sql := "select id, item_id, action, quantity, update_at from history where item_id = $1"
+	rows, err := r.db.Query(sql, itemId)
+	if err != nil {
+		return nil, fmt.Errorf("failed exec query %v", err)
+	}
+	defer rows.Close()
+	
+	var history History
+	for rows.Next() {
+		if err := rows.Scan(&history.Id, &history.ItemId, &history.Action, &history.Quantity, &history.UpdatedAt); err != nil {
+			log.Printf("failed pharsing %v", err)
+		}
+	}
+	return &history, nil
+}
+
+func (r historyRepository) findAll() []History {
+	sql := "select id, item_id, action, quantity, update_at from history"
+	rows, err := r.db.Query(sql)
+	if err != nil {
+		log.Printf("failed exec query %v", err)
+	}
+	defer rows.Close()
+	
+	var histories []History
+	for rows.Next() {
+		var history History
+		if err := rows.Scan(&history.Id, &history.ItemId, &history.Action, &history.Quantity, &history.UpdatedAt); err != nil {
+			log.Printf("failed pharsing %v", err)
+		}
+		histories = append(histories, history)
+	}
+	return histories
 }

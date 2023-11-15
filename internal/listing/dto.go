@@ -38,7 +38,7 @@ type ItemUpdate struct {
 	Status		bool		`json:"status"`
 	Quantity	int			`json:"quantity"`
 }
-
+	
 type ItemResponse struct {
 	Id			int			`json:"id"`
 	Name		string		`json:"name"`
@@ -64,4 +64,12 @@ type CategoryResponse struct {
 	Id				string	`json:"id"`
 	Name			string	`json:"name"`
 	Description		string	`json:"description"`
+}
+
+type HistoryResponse struct {
+	Id			int			`json:"id"`
+	ItemId		int			`json:"itemId"`
+	Action		bool		`json:"action"`
+	Quantity	int			`json:"quantity"`
+	UpdatedAt	time.Time	`json:"updatedAt"`
 }

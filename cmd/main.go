@@ -25,7 +25,11 @@ func main() {
 	categoryService := listing.NewCategoryService(categoryRepository, Validate)
 	categoryHandler := listing.NewCategoryHandler(categoryService)
 
-	router := route.NewRouter(userHandler, itemHandler, categoryHandler)
+	historyRepository := listing.NewHistoryRepository(DB)
+	historyService := listing.NewHistoryService(historyRepository)
+	historyHandler := listing.NewHistoryHandler(historyService)
+
+	router := route.NewRouter(userHandler, itemHandler, categoryHandler, historyHandler)
 
 	server := http.Server {
 		Addr: "localhost:3000",

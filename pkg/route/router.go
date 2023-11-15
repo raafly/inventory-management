@@ -5,7 +5,7 @@ import (
 	"github.com/raafly/inventory-management/internal/listing"
 )
 
-func NewRouter(user listing.UserController, item listing.ItemController, category listing.CategoryHandler) *httprouter.Router {
+func NewRouter(user listing.UserController, item listing.ItemController, category listing.CategoryHandler, history listing.HistoryHandler) *httprouter.Router {
 	router := httprouter.New()
 
 	// user 
@@ -26,6 +26,10 @@ func NewRouter(user listing.UserController, item listing.ItemController, categor
 	router.POST("/api/category", category.Create)
 	router.PUT("/api/category/:categoryId", category.Update)
 	router.GET("/api/category/", category.GetAllCategory)
+
+	// history
+	router.GET("/api/history/:itemId", history.FindById)
+	router.GET("/api/history/", history.FindAll)
 
 	router.PanicHandler = listing.ErrorHandler
 

@@ -2,8 +2,6 @@ package listing
 
 import "time"
 
-// user
-
 type User struct {
 	Id			string
 	Username	string
@@ -12,8 +10,6 @@ type User struct {
 	Cpassword	string
 	Created_at	string
 }
-
-// item
 
 type Item struct {
 	Id				int
@@ -25,15 +21,19 @@ type Item struct {
 	Created_at		time.Time
 }	
 
-// category 
-
 type Category struct {
 	Id				string
 	Name			string
 	Description		string
 }
 
-// web
+type History struct {
+	Id			int
+	ItemId		int
+	Action		bool
+	Quantity	int
+	UpdatedAt	time.Time
+}
 
 type WebResponse struct {
 	Code		int

@@ -279,3 +279,41 @@ func (h CategoryHandlerImpl) GetAllCategory(w http.ResponseWriter, r *http.Reque
 	}
 	helper.WriteToRequestBody(w, webResponse)
 }
+
+type HistoryHandler interface {
+	FindById(w http.ResponseWriter, r *http.Request, params httprouter.Params)	
+	FindAll(w http.ResponseWriter, r *http.Request, params httprouter.Params)
+}
+
+type historyHandler struct {
+	Port HistoryService
+}
+
+func NewHistoryHandler(port HistoryService) HistoryHandler {
+	return &historyHandler{Port: port}
+}
+
+func (h historyHandler) FindById(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
+	id := params.ByName("itemId")
+	newId, err := strconv.Atoi(id)
+	if err != nil {
+		panic(err)
+	}
+
+	data := h.Port.findById(newId)
+	webResponse := WebResponse {
+		Code: 200,
+		Data: data,
+	}
+
+	helper.WriteToRequestBody(w, webResponse)
+}
+func (h historyHandler) FindAll(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
+	data := h.Port.findAll()
+	webResponse := WebResponse {
+		Code: 200,
+		Data: data,
+	}
+
+	helper.WriteToRequestBody(w, webResponse)
+}

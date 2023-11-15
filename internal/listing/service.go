@@ -198,12 +198,13 @@ func (s ItemServiceImpl) UpdateStatus(request ItemUpdate) error {
 		panic(NewNotFoundError(err.Error()))
 	}
 
-	data = &Item{
+	data = &Item {
 		Id:     data.Id,
 		Status: request.Status,
+		Quantity: request.Quantity,
 	}
 
-	s.ItemRepository.UpdateStatus(data.Id, data.Status)
+	s.ItemRepository.UpdateStatus(data.Id, data.Status, data.Quantity)
 	return nil
 }
 
@@ -319,4 +320,44 @@ func (s CategoryServiceImpl) GetAllCategory() []CategoryResponse {
 	}
 
 	return categoryResponse
+}
+
+type HistoryService interface {
+	findById(itemId int) HistoryResponse
+	findAll() []HistoryResponse
+}
+
+type historyService struct {
+	Port HistoryRepository
+}
+
+func NewHistoryService(port HistoryRepository) HistoryService {
+	return &historyService{Port: port}
+}
+
+func (s historyService)findById(itemId int) HistoryResponse {
+	data, err := s.Port.findById(itemId)
+	if err != nil {
+		panic(NewNotFoundError(err.Error()))
+	}
+
+	response := HistoryResponse {
+		Id: data.Id,
+		ItemId: data.ItemId,
+		Action: data.Action,
+		Quantity: data.Quantity,
+		UpdatedAt: data.UpdatedAt,
+	}
+	return response
+}
+
+func (s historyService)findAll() []HistoryResponse {
+	histories := s.Port.findAll()
+
+	var historyResponse []HistoryResponse
+	for _, history := range histories {
+		historyResponse = append(historyResponse, HistoryResponse(history))
+	}
+
+	return historyResponse
 }
