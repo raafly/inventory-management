@@ -5,7 +5,7 @@ import (
 	"time"
 
 	_ "github.com/lib/pq"
-	"github.com/raafly/inventory-management/helper"
+	"github.com/raafly/inventory-management/pkg/helper"
 )
 
 func NewDB() *sql.DB {
