@@ -1,6 +1,10 @@
 package middleware
 
-import "net/http"
+import (
+  "net/http"
+  "github.com/raafly/inventory-management/internal/listing"
+  "github.com/raafly/inventory-management/pkg/helper"
+)
 
 type AuthMiddleware struct {
   Handler http.Handler
@@ -11,18 +15,17 @@ func NewAuthMiddleware(handler http.Handler) *AuthMiddleware {
 }
 
 func (m *AuthMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-  err := r.Cookie("auth")
+  _, err := r.Cookie("auth")
   if err != nil {
     w.Header().Set("Content-Type", "application/json")
     w.WriteHeader(http.StatusUnauthorized)
 
-      webResponse := web.WebResponse {
+      webResponse := listing.WebResponse {
         Code: http.StatusUnauthorized,
-        Status: "UNAUTHORIZED",
       }
 
       helper.WriteToRequestBody(w, webResponse)
   } else {
-    middleware.Handler.ServeHTTP(w, r)
+    m.Handler.ServeHTTP(w, r)
   }
-} 
+}  
