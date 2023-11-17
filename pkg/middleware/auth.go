@@ -6,6 +6,10 @@ type AuthMiddleware struct {
   Handler http.Handler
 }
 
+func NewAuthMiddleware(handler http.Handler) *AuthMiddleware {
+	return &AuthMiddleware{Handler: handler}
+}
+
 func (m *AuthMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Request) {
   err := r.Cookie("auth")
   if err != nil {
@@ -21,4 +25,4 @@ func (m *AuthMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Request) {
   } else {
     middleware.Handler.ServeHTTP(w, r)
   }
-}
+} 

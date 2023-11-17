@@ -30,10 +30,11 @@ func main() {
 	historyHandler := listing.NewHistoryHandler(historyService)
 
 	router := route.NewRouter(userHandler, itemHandler, categoryHandler, historyHandler)
+  aurhMiddleware := middleware.NewAuthMiddleware(router)
 
 	server := http.Server {
 		Addr: "localhost:3000",
-		Handler: router,
+		Handler: aurhMiddleware,
 	}
 
 	server.ListenAndServe()
